@@ -3,5 +3,24 @@ import { PageIntro } from "@/components/site";
 import { ConsultationSummary } from "@/components/interactions";
 
 export default function ConfirmationPage() {
-  return <><PageIntro eyebrow="CONTOH TAMPILAN RINGKASAN" title="Periksa kebutuhan sebelum berdiskusi." description="Ini adalah ringkasan konsultasi, bukan konfirmasi pengiriman permintaan. Belum ada data pelanggan atau pesanan yang dikirim." breadcrumb="Konsultasi / Ringkasan" /><div className="container"><p className="notice">Contoh wireframe • Kolom yang belum diketahui dapat tetap “Belum Tahu” dan dibahas melalui WhatsApp.</p><section className="section"><ConsultationSummary /></section><p className="section-desc"><Link href="/produk" className="text-link">Masih ingin mencari referensi? Kembali ke Katalog Produk →</Link></p></div></>;
+  return (
+    <>
+      <PageIntro
+        eyebrow="RINGKASAN KONSULTASI"
+        title="Tinjau Kebutuhan Anda"
+        description="Periksa informasi awal yang telah Anda isi sebelum menggunakannya sebagai bahan diskusi dengan Cinderella Printing."
+        breadcrumb="Konsultasi / Ringkasan"
+      />
+      <div className="container">
+        <p className="notice">
+          Ringkasan ini disimpan sementara di browser Anda. Informasi belum dikirim
+          ke server, belum menjadi pesanan, dan tidak mencakup pembayaran.
+        </p>
+        <section className="section"><ConsultationSummary /></section>
+        <p className="section-desc">
+          <Link href="/produk" className="text-link">Kembali ke katalog produk →</Link>
+        </p>
+      </div>
+    </>
+  );
 }

@@ -1,0 +1,6 @@
+import { CtaBand, PageIntro } from "@/components/site";
+import { PortfolioBrowser } from "@/components/interactions";
+
+export default function PortfolioPage() {
+  return <><PageIntro eyebrow="REFERENSI CETAK & KEMASAN" title="Portofolio" description="Jelajahi referensi untuk membantu menjelaskan kebutuhan produk, bentuk, dan desain saat konsultasi." breadcrumb="Portofolio" /><section className="section-soft"><div className="container portfolio-feature"><div className="image-placeholder feature-image">Gambar proyek pilihan</div><div><p className="eyebrow">KATEGORI PROYEK</p><h2>[Nama proyek / produk]</h2><p className="muted">Deskripsi kebutuhan, pendekatan desain, dan detail proyek.</p><p className="muted">[Material] • [Ukuran] • [Detail kustomisasi]</p></div></div></section><section className="section container"><h2>Galeri produk &amp; kemasan</h2><p className="section-desc">Keterangan koleksi portofolio perusahaan.</p><PortfolioBrowser /><p className="notice">Portofolio digunakan sebagai referensi diskusi. Material, ukuran, bentuk, dan kemungkinan produksi perlu dikonfirmasi untuk kebutuhan Anda.</p></section><CtaBand title="Punya referensi atau ide sendiri?" text="Bawa gambar referensi Anda saat konsultasi. Tidak harus memiliki desain final untuk mulai bertanya." /></>;
+}

@@ -4,8 +4,12 @@ import MotionProvider from "@/components/motion-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Cinderella Printing | Custom Printing & Packaging",
-  description: "Website informasi dan konsultasi custom printing dan packaging Cinderella Printing.",
+  title: {
+    default: "Cinderella Printing | Custom Printing & Packaging",
+    template: "%s | Cinderella Printing",
+  },
+  description:
+    "Jelajahi referensi produk cetak dan kemasan custom Cinderella Printing, lalu diskusikan kebutuhan Anda melalui konsultasi.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

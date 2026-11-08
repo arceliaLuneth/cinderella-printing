@@ -219,3 +219,28 @@ a:hover { color: var(--brand-blue-dark); }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Content refinement: clearer rhythm, readable copy, and consistent interaction states. */
+.page-intro { padding-block: 34px 20px; }
+.page-intro .breadcrumb { margin-bottom: 22px; }
+.page-intro .lead { max-width: 720px; line-height: 1.75; }
+.section-heading { margin-bottom: 22px; }
+.section-desc, .section-heading p { max-width: 760px; line-height: 1.7; }
+.about-feature > div:last-child h2 { max-width: 560px; margin-bottom: 14px; }
+.about-feature > div:last-child p { line-height: 1.8; }
+.portfolio-feature > div:last-child h2 { max-width: 560px; margin-bottom: 12px; }
+.portfolio-feature > div:last-child p { line-height: 1.8; }
+.contact-information, .contact-address { min-width: 0; }
+.contact-information > p, .contact-address > p { line-height: 1.75; }
+.image-placeholder { min-height: 120px; }
+.image-placeholder span { position: relative; z-index: 1; }
+.button:focus-visible, .text-link:focus-visible, .main-nav a:focus-visible,
+.chip:focus-visible, .faq-list summary:focus-visible {
+  outline: 3px solid rgba(0,160,224,.35);
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .page-intro { padding-block: 22px 12px; }
+  .page-intro .breadcrumb { margin-bottom: 18px; }
+  .about-feature, .portfolio-feature { gap: 24px; }
+}
