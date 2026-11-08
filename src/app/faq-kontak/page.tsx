@@ -1,0 +1,8 @@
+import Link from "next/link";
+import { BUSINESS_ADDRESS, BUSINESS_EMAIL, BUSINESS_HOURS } from "@/lib/site-data";
+import { CtaBand, PageIntro, WhatsAppLink } from "@/components/site";
+import { FaqList } from "@/components/interactions";
+
+export default function FaqContactPage() {
+  return <><PageIntro eyebrow="INFORMASI & BANTUAN" title="FAQ & Kontak" description="Temukan panduan awal tentang konsultasi dan pemesanan. Untuk kebutuhan yang lebih spesifik, hubungi kami langsung melalui WhatsApp." breadcrumb="FAQ & Kontak" /><section className="section container faq-layout"><aside><h2>Pertanyaan umum</h2><p className="muted">Belum menemukan jawaban? Anda tidak perlu menyelesaikan formulir untuk bertanya.</p><WhatsAppLink label="Tanya via WhatsApp" /></aside><FaqList /></section><section className="section-soft"><div className="container"><h2>Hubungi Cinderella Printing</h2><p className="section-desc">Pilih cara yang paling nyaman untuk memulai percakapan.</p><div className="contact-grid"><div><h3>WhatsApp</h3><p>[Nomor WhatsApp]</p><WhatsAppLink label="Mulai Chat WhatsApp" className="button button-dark" /><div className="contact-pair"><div><h4>Email</h4><p>{BUSINESS_EMAIL}</p></div><div><h4>Jam operasional</h4><p>{BUSINESS_HOURS}</p></div></div><p className="muted">Lebih nyaman menulis kebutuhan? Gunakan formulir konsultasi singkat sebagai alternatif.</p><Link href="/konsultasi" className="button button-outline">Buka Formulir Konsultasi →</Link></div><div><div className="image-placeholder map-placeholder">Placeholder peta lokasi</div><h4>Alamat</h4><p>{BUSINESS_ADDRESS}</p></div></div></div></section><CtaBand /></>;
+}

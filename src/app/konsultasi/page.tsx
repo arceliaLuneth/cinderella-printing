@@ -1,0 +1,6 @@
+import { CtaBand, PageIntro, WhatsAppLink } from "@/components/site";
+import { ConsultationForm } from "@/components/interactions";
+
+export default function ConsultationPage() {
+  return <><PageIntro eyebrow="MULAI PERCAKAPAN" title="Ceritakan kebutuhan Anda." description="Isi yang sudah Anda ketahui saja. Pilih Belum Tahu untuk spesifikasi yang belum pasti, atau langsung gunakan WhatsApp tanpa mengisi formulir." breadcrumb="Konsultasi" /><section className="container section consultation-layout"><div><p className="notice">Formulir ini adalah persiapan diskusi, bukan pemesanan langsung. Spesifikasi dapat dilengkapi bersama dan harga diberikan melalui penawaran.</p><ConsultationForm /></div><aside className="summary-aside"><h2>Langsung lewat WhatsApp</h2><p>Tidak ingin mengisi formulir? Cukup ceritakan produk yang dibutuhkan atau kirim gambar referensi.</p><WhatsAppLink label="Buka WhatsApp" className="button button-dark button-full" /><p className="helper">[Nomor WhatsApp]<br />[Jam operasional]</p><h3>Bahan diskusi awal</h3><ul><li>Apa yang ingin dicetak / dikemas?</li><li>Ada perkiraan jumlah?</li><li>Punya referensi desain?</li></ul><p className="helper">Jawaban “belum tahu” juga boleh.</p></aside></section><CtaBand title="Masih ingin mencari referensi?" text="Kembali ke katalog produk untuk melihat pilihan yang tersedia." /></>;
+}
