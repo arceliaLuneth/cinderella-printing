@@ -17,18 +17,14 @@ const nav = [
 export function WhatsAppLink({
   label = "WhatsApp",
   className = "button button-outline",
-  message,
+  message = "Halo Cinderella Printing, saya ingin bertanya mengenai produk dan layanan cetak/kemasan.",
 }: {
   label?: string;
   className?: string;
   message?: string;
 }) {
-  const base = WHATSAPP_NUMBER
-    ? `https://wa.me/${WHATSAPP_NUMBER}`
-    : "/faq-kontak";
-  const href = WHATSAPP_NUMBER && message
-    ? `${base}?text=${encodeURIComponent(message)}`
-    : base;
+  const base = `https://wa.me/${WHATSAPP_NUMBER}`;
+  const href = `${base}?text=${encodeURIComponent(message)}`;
 
   return (
     <a
