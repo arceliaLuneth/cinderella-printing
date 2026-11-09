@@ -6,20 +6,19 @@ export default function ConfirmationPage() {
   return (
     <>
       <PageIntro
-        eyebrow="RINGKASAN KONSULTASI"
-        title="Tinjau Kebutuhan Anda"
-        description="Periksa informasi awal yang telah Anda isi sebelum menggunakannya sebagai bahan diskusi dengan Cinderella Printing."
+        eyebrow="TINJAU SEBELUM MENGHUBUNGI"
+        title="Periksa ringkasan kebutuhan"
+        description="Pastikan informasi yang ditampilkan sudah sesuai. Anda dapat kembali untuk mengubahnya sebelum melanjutkan percakapan."
         breadcrumb="Konsultasi / Ringkasan"
       />
       <div className="container">
         <p className="notice">
-          Ringkasan ini disimpan sementara di browser Anda. Informasi belum dikirim
-          ke server, belum menjadi pesanan, dan tidak mencakup pembayaran.
+          Ringkasan tersimpan sementara pada sesi browser ini. Data belum masuk ke
+          database dan belum menjadi pesanan. Setelah WhatsApp terbuka, periksa pesan
+          dan lampirkan file referensi secara manual jika diperlukan.
         </p>
         <section className="section"><ConsultationSummary /></section>
-        <p className="section-desc">
-          <Link href="/produk" className="text-link">Kembali ke katalog produk →</Link>
-        </p>
+        <p className="section-desc"><Link href="/produk" className="text-link">Kembali menjelajahi katalog →</Link></p>
       </div>
     </>
   );

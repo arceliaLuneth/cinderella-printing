@@ -5,11 +5,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Cinderella Printing | Custom Printing & Packaging",
+    default: "Cinderella Printing | Cetak & Kemasan Custom",
     template: "%s | Cinderella Printing",
   },
   description:
-    "Jelajahi referensi produk cetak dan kemasan custom Cinderella Printing, lalu diskusikan kebutuhan Anda melalui konsultasi.",
+    "Jelajahi kategori produk cetak dan kemasan Cinderella Printing. Siapkan kebutuhan, lihat referensi, dan lanjutkan konsultasi untuk membahas spesifikasi serta penawaran.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <MotionProvider>
           <Header />
-          <main>{children}</main>
+          <main id="main-content">{children}</main>
           <Footer />
         </MotionProvider>
       </body>

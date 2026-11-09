@@ -2,14 +2,36 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
-import type { ProductCategory } from "@/types";
-import { categories, portfolioItems, products } from "@/lib/site-data";
+import type { ConsultationDraft, ProductCategory } from "@/types";
+import {
+  categories,
+  categoryDescriptions,
+  portfolioItems,
+  products,
+  WHATSAPP_NUMBER,
+} from "@/lib/site-data";
+
+const STORAGE_KEY = "cinderella-consultation-v2";
+const LEGACY_STORAGE_KEY = "cinderella-consultation";
+
+const emptyDraft: ConsultationDraft = {
+  product: "",
+  quantity: "",
+  size: "",
+  material: "",
+  shape: "",
+  budget: "",
+  name: "",
+  whatsapp: "",
+  referenceFileName: "",
+  notes: "",
+};
 
 function PlaceholderImage({
-  label = "Foto produk akan ditambahkan",
+  label,
   className = "",
 }: {
-  label?: string;
+  label: string;
   className?: string;
 }) {
   return (
@@ -25,13 +47,13 @@ export function ProductGrid({ limit }: { limit?: number }) {
     <div className="product-grid">
       {shown.map((product) => (
         <article className="product-card" key={product.id}>
-          <PlaceholderImage label={`Foto ${product.category.toLowerCase()}`} />
+          <PlaceholderImage label={`Foto ${product.category} akan ditambahkan`} />
           <div className="card-body">
+            <p className="card-kicker">{product.category}</p>
             <h3>{product.name}</h3>
             <p>{product.description}</p>
-            <small>Kategori: {product.category}</small>
-            <small>MOQ: {product.moq}</small>
-            <Link href={`/produk/${product.slug}`} className="text-link">Lihat Detail →</Link>
+            <p className="product-meta">Jumlah minimum, bahan, ukuran, dan harga dibahas saat konsultasi.</p>
+            <Link href={`/produk/${product.slug}`} className="text-link">Lihat detail kategori →</Link>
           </div>
         </article>
       ))}
@@ -40,22 +62,17 @@ export function ProductGrid({ limit }: { limit?: number }) {
 }
 
 export function CategoryGrid() {
-  const copy: Record<ProductCategory, string> = {
-    "Packaging Makanan": "Jelajahi referensi kemasan makanan dan diskusikan ukuran, material, serta kebutuhan desain yang sesuai dengan produk Anda.",
-    Pouch: "Temukan referensi kemasan pouch. Detail material, ukuran, dan kebutuhan cetak dapat dibahas saat konsultasi.",
-    Cup: "Lihat referensi cup dan diskusikan ukuran serta desain yang sesuai dengan kebutuhan bisnis Anda.",
-    "Custom Packaging": "Memiliki kebutuhan di luar kategori yang tersedia? Ceritakan bentuk, fungsi, dan referensi kemasan yang Anda bayangkan.",
-  };
-
   return (
     <div className="category-grid">
       {categories.map((category) => (
         <article className="category-card" key={category}>
-          <PlaceholderImage label={`Referensi ${category.toLowerCase()}`} />
+          <PlaceholderImage label={`Foto contoh ${category} akan ditambahkan`} />
           <div className="card-body">
             <h3>{category}</h3>
-            <p>{copy[category]}</p>
-            <Link href={`/produk?kategori=${encodeURIComponent(category)}`} className="text-link">Jelajahi produk →</Link>
+            <p>{categoryDescriptions[category]}</p>
+            <Link href={`/produk?kategori=${encodeURIComponent(category)}`} className="text-link">
+              Lihat referensi {category.toLowerCase()} →
+            </Link>
           </div>
         </article>
       ))}
@@ -66,61 +83,93 @@ export function CategoryGrid() {
 export function CatalogBrowser() {
   const [category, setCategory] = useState("Semua Produk");
   const [query, setQuery] = useState("");
-  const filtered = useMemo(
-    () => products.filter((item) =>
-      (category === "Semua Produk" || item.category === category) &&
-      `${item.name} ${item.description}`.toLowerCase().includes(query.toLowerCase())
-    ),
-    [category, query]
-  );
+
+  useEffect(() => {
+    const selected = new URLSearchParams(window.location.search).get("kategori");
+    if (selected && categories.includes(selected as ProductCategory)) setCategory(selected);
+  }, []);
+
+  const filtered = useMemo(() => {
+    const normalized = query.trim().toLocaleLowerCase("id-ID");
+    return products.filter((item) => {
+      const categoryMatch = category === "Semua Produk" || item.category === category;
+      const textMatch = `${item.name} ${item.category} ${item.description}`
+        .toLocaleLowerCase("id-ID")
+        .includes(normalized);
+      return categoryMatch && textMatch;
+    });
+  }, [category, query]);
 
   return (
     <div className="catalog-layout">
-      <aside className="filter-panel">
-        <h3>Kategori Produk</h3>
-        {["Semua Produk", ...categories].map((name) => (
-          <label className="filter-option" key={name}>
-            <input type="radio" name="product-category" checked={category === name} onChange={() => setCategory(name)} />
-            {name}
-          </label>
-        ))}
-        <p className="muted small">Belum yakin kategori yang tepat?</p>
+      <aside className="filter-panel" aria-label="Filter katalog produk">
+        <h2 className="filter-title">Kategori produk</h2>
+        <fieldset className="filter-options">
+          <legend className="sr-only">Pilih kategori produk</legend>
+          {["Semua Produk", ...categories].map((name) => (
+            <label className="filter-option" key={name}>
+              <input
+                type="radio"
+                name="product-category"
+                value={name}
+                checked={category === name}
+                onChange={() => setCategory(name)}
+              />
+              <span>{name}</span>
+            </label>
+          ))}
+        </fieldset>
+        <p className="muted small">Belum yakin kategori yang sesuai?</p>
         <Link href="/cari-produk" className="button button-outline button-full">Bantu Saya Memilih</Link>
       </aside>
-      <div>
-        <label className="field-label" htmlFor="product-search">Cari Produk</label>
+
+      <div className="catalog-results">
+        <label className="field-label" htmlFor="product-search">Cari produk atau kategori</label>
         <input
           id="product-search"
           className="text-input"
-          placeholder="Cari nama produk atau kebutuhan Anda…"
+          type="search"
+          placeholder="Contoh: pouch, cup, kemasan makanan…"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
+          aria-describedby="catalog-result-count"
         />
         <div className="result-meta">
-          <span>{filtered.length} referensi produk · {category}</span>
-          <span>Katalog konsultasi</span>
+          <p id="catalog-result-count" aria-live="polite" aria-atomic="true">
+            Menampilkan {filtered.length} dari {products.length} referensi · {category}
+          </p>
+          {(query || category !== "Semua Produk") && (
+            <button type="button" className="text-button" onClick={() => { setQuery(""); setCategory("Semua Produk"); }}>
+              Hapus filter
+            </button>
+          )}
         </div>
-        {filtered.length ? (
+        {filtered.length > 0 ? (
           <div className="product-grid catalog-products">
             {filtered.map((product) => (
               <article className="product-card" key={product.id}>
-                <PlaceholderImage label={`Referensi ${product.category.toLowerCase()}`} />
+                <PlaceholderImage label={`Foto ${product.category} akan ditambahkan`} />
                 <div className="card-body">
+                  <p className="card-kicker">{product.category}</p>
                   <h3>{product.name}</h3>
                   <p>{product.description}</p>
-                  <small>Kategori: {product.category}</small>
-                  <small>MOQ: {product.moq}</small>
-                  <Link href={`/produk/${product.slug}`} className="text-link">Lihat Detail →</Link>
+                  <Link href={`/produk/${product.slug}`} className="text-link">Lihat detail →</Link>
                 </div>
               </article>
             ))}
           </div>
         ) : (
-          <div className="empty-state">Produk tidak ditemukan. Coba kata kunci atau kategori lain.</div>
+          <div className="empty-state" role="status">
+            <h3>Referensi belum ditemukan</h3>
+            <p>Coba kata kunci lain atau tampilkan semua kategori.</p>
+            <button type="button" className="button button-outline" onClick={() => { setQuery(""); setCategory("Semua Produk"); }}>
+              Tampilkan semua referensi
+            </button>
+          </div>
         )}
         <p className="notice">
-          Katalog ini merupakan referensi awal. Spesifikasi dan penawaran harga
-          dikonfirmasi melalui konsultasi; website tidak memproses checkout atau pembayaran.
+          Katalog ini membantu memilih kategori awal. Ketersediaan produk, bahan,
+          ukuran, jumlah minimum, dan harga akan dikonfirmasi saat konsultasi.
         </p>
       </div>
     </div>
@@ -135,7 +184,7 @@ export function PortfolioBrowser() {
 
   return (
     <>
-      <div className="filter-chips" aria-label="Filter kategori referensi">
+      <div className="filter-chips" role="group" aria-label="Filter inspirasi produk">
         {["Semua", ...categories].map((item) => (
           <button
             type="button"
@@ -148,15 +197,18 @@ export function PortfolioBrowser() {
           </button>
         ))}
       </div>
+      <p className="result-meta" aria-live="polite">Menampilkan {filtered.length} kategori referensi.</p>
       <div className="product-grid portfolio-grid">
         {filtered.map((item) => (
           <article className="product-card" key={item.id}>
-            <PlaceholderImage label={`Referensi ${item.category.toLowerCase()}`} />
+            <PlaceholderImage label={`Foto referensi ${item.category} akan ditambahkan`} />
             <div className="card-body">
+              <p className="card-kicker">Referensi kategori</p>
               <h3>{item.title}</h3>
-              <small>{item.category}</small>
               <p>{item.description}</p>
-              <Link href={`/konsultasi?referensi=${encodeURIComponent(item.title)}`} className="text-link">Gunakan sebagai referensi →</Link>
+              <Link href={`/konsultasi?referensi=${encodeURIComponent(item.title)}`} className="text-link">
+                Gunakan sebagai bahan konsultasi →
+              </Link>
             </div>
           </article>
         ))}
@@ -165,22 +217,38 @@ export function PortfolioBrowser() {
   );
 }
 
-const blankDraft = {
-  product: "",
-  quantity: "",
-  size: "",
-  material: "",
-  shape: "",
-  budget: "",
-  name: "",
-  whatsapp: "",
-  referenceFileName: "",
-};
-
-type ConsultationDraft = typeof blankDraft;
+function getSavedDraft(): ConsultationDraft {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!raw) return emptyDraft;
+    return { ...emptyDraft, ...JSON.parse(raw) };
+  } catch {
+    return emptyDraft;
+  }
+}
 
 export function ConsultationForm() {
-  const [draft, setDraft] = useState<ConsultationDraft>(blankDraft);
+  const [draft, setDraft] = useState<ConsultationDraft>(emptyDraft);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const saved = getSavedDraft();
+    const params = new URLSearchParams(window.location.search);
+    const productParam = params.get("produk") ?? params.get("kategori") ?? "";
+    const referenceParam = params.get("referensi") ?? "";
+    const selectedProduct = products.find((item) => item.name === productParam);
+    const selectedCategory = categories.includes(productParam as ProductCategory)
+      ? productParam
+      : selectedProduct?.category ?? "";
+    setDraft({
+      ...saved,
+      product: selectedCategory || saved.product,
+      notes: referenceParam
+        ? `Referensi yang ingin dibahas: ${referenceParam}`
+        : saved.notes,
+    });
+    setReady(true);
+  }, []);
 
   function update(field: keyof ConsultationDraft, value: string) {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -189,104 +257,197 @@ export function ConsultationForm() {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
-      sessionStorage.setItem("cinderella-consultation", JSON.stringify(draft));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
     } catch {
-      // Continue to the summary even when browser storage is unavailable.
+      // Keep the interaction usable; the following page explains the local-only behavior.
     }
-    window.location.href = "/konfirmasi";
+    window.location.assign("/konfirmasi");
+  }
+
+  if (!ready) {
+    return <div className="form-loading" role="status">Menyiapkan formulir konsultasi…</div>;
   }
 
   return (
     <form className="consultation-form" onSubmit={submit}>
-      <div className="form-section">
-        <h2>Kebutuhan Produk</h2>
-        <p className="muted">Isi informasi yang sudah Anda ketahui. Detail yang belum pasti dapat dibahas nanti.</p>
-        <label className="field-label">
-          Produk / kategori
-          <select className="text-input" value={draft.product} onChange={(event) => update("product", event.target.value)}>
-            <option value="">Pilih produk atau Belum Tahu</option>
-            {categories.map((item) => <option key={item}>{item}</option>)}
-            <option>Belum Tahu</option>
-          </select>
-        </label>
+      <section className="form-section" aria-labelledby="form-product-heading">
+        <h2 id="form-product-heading">1. Kebutuhan produk</h2>
+        <p className="muted">Isi yang sudah Anda ketahui. Kolom boleh dikosongkan atau diisi “Belum tahu”.</p>
+        <label className="field-label" htmlFor="consult-product">Produk atau kategori</label>
+        <select id="consult-product" className="text-input" value={draft.product} onChange={(event) => update("product", event.target.value)}>
+          <option value="">Pilih kategori atau belum tahu</option>
+          {categories.map((item) => <option key={item} value={item}>{item}</option>)}
+          <option value="Belum tahu">Belum tahu</option>
+        </select>
         <div className="form-grid">
-          <label className="field-label">Jumlah kebutuhan<input className="text-input" placeholder="Perkiraan jumlah atau Belum Tahu" value={draft.quantity} onChange={(event) => update("quantity", event.target.value)} /></label>
-          <label className="field-label">Ukuran<input className="text-input" placeholder="Ukuran atau Belum Tahu" value={draft.size} onChange={(event) => update("size", event.target.value)} /></label>
-          <label className="field-label">Material<input className="text-input" placeholder="Material atau Belum Tahu" value={draft.material} onChange={(event) => update("material", event.target.value)} /></label>
-          <label className="field-label">Bentuk / potongan<input className="text-input" placeholder="Bentuk atau Belum Tahu" value={draft.shape} onChange={(event) => update("shape", event.target.value)} /></label>
+          <label className="field-label" htmlFor="consult-quantity">
+            Perkiraan jumlah
+            <input id="consult-quantity" className="text-input" value={draft.quantity} onChange={(event) => update("quantity", event.target.value)} placeholder="Contoh: 500 pcs / belum tahu" />
+          </label>
+          <label className="field-label" htmlFor="consult-size">
+            Perkiraan ukuran
+            <input id="consult-size" className="text-input" value={draft.size} onChange={(event) => update("size", event.target.value)} placeholder="Contoh: 10 × 15 cm / belum tahu" />
+          </label>
+          <label className="field-label" htmlFor="consult-material">
+            Bahan yang diinginkan
+            <input id="consult-material" className="text-input" value={draft.material} onChange={(event) => update("material", event.target.value)} placeholder="Bahan / belum tahu" />
+          </label>
+          <label className="field-label" htmlFor="consult-shape">
+            Bentuk atau model
+            <input id="consult-shape" className="text-input" value={draft.shape} onChange={(event) => update("shape", event.target.value)} placeholder="Bentuk / belum tahu" />
+          </label>
         </div>
-        <p className="helper">Minimum pemesanan dan pilihan produksi dikonfirmasi saat konsultasi.</p>
-        <label className="field-label">Perkiraan anggaran<input className="text-input" placeholder="Anggaran atau Belum Tahu" value={draft.budget} onChange={(event) => update("budget", event.target.value)} /></label>
-        <p className="helper">Opsional. Informasi ini menjadi bahan diskusi, bukan harga penawaran.</p>
-      </div>
-      <div className="form-section">
-        <h2>Desain atau Referensi</h2>
-        <p className="muted">Opsional. Anda dapat melewati bagian ini jika belum memiliki desain.</p>
-        <label className="upload-box">
-          Tambahkan desain atau gambar referensi
-          <input type="file" accept="image/*,.pdf" onChange={(event) => update("referenceFileName", event.target.files?.[0]?.name ?? "")} />
-          <span className="button button-outline">Pilih File</span>
-          <small>{draft.referenceFileName || "Belum ada file dipilih"}</small>
+        <label className="field-label" htmlFor="consult-budget">
+          Perkiraan anggaran (opsional)
+          <input id="consult-budget" className="text-input" value={draft.budget} onChange={(event) => update("budget", event.target.value)} placeholder="Boleh dikosongkan" />
         </label>
-      </div>
-      <div className="form-section">
-        <h2>Informasi Kontak</h2>
-        <p className="muted">Isi kontak jika ingin mencantumkannya dalam ringkasan konsultasi.</p>
+        <p className="helper">Informasi ini hanya bahan diskusi awal, bukan harga atau penawaran yang mengikat.</p>
+      </section>
+
+      <section className="form-section" aria-labelledby="form-reference-heading">
+        <h2 id="form-reference-heading">2. Desain atau referensi</h2>
+        <p className="muted">Boleh dilewati apabila belum memiliki gambar atau desain.</p>
+        <label className="field-label" htmlFor="consult-reference">Pilih gambar atau PDF referensi</label>
+        <input
+          id="consult-reference"
+          className="text-input file-input"
+          type="file"
+          accept="image/*,.pdf"
+          onChange={(event) => update("referenceFileName", event.target.files?.[0]?.name ?? "")}
+        />
+        <p className="helper">
+          Untuk tahap frontend ini, file belum diunggah ke server. Setelah WhatsApp terbuka,
+          lampirkan file tersebut secara manual pada percakapan.
+        </p>
+        {draft.referenceFileName && <p className="selected-file">File dipilih: {draft.referenceFileName}</p>}
+        <label className="field-label" htmlFor="consult-notes">
+          Catatan kebutuhan (opsional)
+          <textarea id="consult-notes" className="text-input text-area" value={draft.notes} onChange={(event) => update("notes", event.target.value)} placeholder="Ceritakan fungsi produk, contoh penggunaan, atau hal khusus yang perlu diketahui." rows={4} />
+        </label>
+      </section>
+
+      <section className="form-section" aria-labelledby="form-contact-heading">
+        <h2 id="form-contact-heading">3. Informasi kontak</h2>
+        <p className="muted">Cantumkan informasi jika ingin dimasukkan ke ringkasan konsultasi.</p>
         <div className="form-grid">
-          <label className="field-label">Nama<input className="text-input" placeholder="Nama Anda" value={draft.name} onChange={(event) => update("name", event.target.value)} /></label>
-          <label className="field-label">Nomor WhatsApp<input className="text-input" placeholder="Nomor WhatsApp aktif" value={draft.whatsapp} onChange={(event) => update("whatsapp", event.target.value)} /></label>
+          <label className="field-label" htmlFor="consult-name">
+            Nama
+            <input id="consult-name" className="text-input" autoComplete="name" value={draft.name} onChange={(event) => update("name", event.target.value)} placeholder="Nama Anda" />
+          </label>
+          <label className="field-label" htmlFor="consult-whatsapp">
+            Nomor WhatsApp Anda (opsional)
+            <input id="consult-whatsapp" className="text-input" type="tel" autoComplete="tel" value={draft.whatsapp} onChange={(event) => update("whatsapp", event.target.value)} placeholder="Contoh: 08xxxxxxxxxx" />
+          </label>
         </div>
-        <p className="helper">Formulir ini menyiapkan ringkasan di browser; belum mengirim data ke server atau membuat pesanan.</p>
+        <p className="helper">Data ini belum dikirim atau disimpan ke server. Data hanya digunakan untuk membuat ringkasan di browser ini.</p>
+      </section>
+
+      <div className="form-actions">
+        <button className="button button-dark" type="submit">Tinjau Ringkasan →</button>
+        <button className="button button-quiet" type="button" onClick={() => { setDraft(emptyDraft); try { sessionStorage.removeItem(STORAGE_KEY); sessionStorage.removeItem(LEGACY_STORAGE_KEY); } catch {} }}>
+          Kosongkan formulir
+        </button>
       </div>
-      <button className="button button-dark" type="submit">Tinjau Ringkasan →</button>
-      <p className="helper">Anda dapat memeriksa ringkasan sebelum melanjutkan percakapan. Tidak ada pembayaran pada tahap ini.</p>
+      <p className="helper">Mengirim ringkasan melalui WhatsApp tidak otomatis membuat pesanan atau menyetujui harga.</p>
     </form>
   );
 }
 
-export function ConsultationSummary() {
-  const [draft, setDraft] = useState<ConsultationDraft>(blankDraft);
+function formatConsultationMessage(draft: ConsultationDraft) {
+  const value = (text: string) => text.trim() || "Belum diisi";
+  return [
+    "Halo Cinderella Printing, saya ingin berkonsultasi mengenai kebutuhan cetak/kemasan.",
+    "",
+    "RINGKASAN KEBUTUHAN",
+    `Nama: ${value(draft.name)}`,
+    `Nomor WhatsApp: ${value(draft.whatsapp)}`,
+    `Produk/kategori: ${value(draft.product)}`,
+    `Perkiraan jumlah: ${value(draft.quantity)}`,
+    `Ukuran: ${value(draft.size)}`,
+    `Bahan: ${value(draft.material)}`,
+    `Bentuk/model: ${value(draft.shape)}`,
+    `Perkiraan anggaran: ${value(draft.budget)}`,
+    `Catatan: ${value(draft.notes)}`,
+    `Nama file referensi: ${value(draft.referenceFileName)}`,
+    draft.referenceFileName ? "Catatan: Saya akan melampirkan file referensi secara manual di chat ini." : "",
+    "",
+    "Mohon informasi mengenai pilihan spesifikasi dan penawaran yang sesuai. Terima kasih.",
+  ].filter(Boolean).join("\n");
+}
 
-  // Read sessionStorage after hydration so the server and first client render match.
+export function ConsultationSummary() {
+  const [draft, setDraft] = useState<ConsultationDraft>(emptyDraft);
+  const [loaded, setLoaded] = useState(false);
+  const [copyStatus, setCopyStatus] = useState("");
+
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem("cinderella-consultation");
-      if (stored) setDraft({ ...blankDraft, ...JSON.parse(stored) });
-    } catch {
-      setDraft(blankDraft);
-    }
+    setDraft(getSavedDraft());
+    setLoaded(true);
   }, []);
 
+  const message = useMemo(() => formatConsultationMessage(draft), [draft]);
+  const whatsappUrl = WHATSAPP_NUMBER
+    ? `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
+    : "";
+
+  async function copySummary() {
+    try {
+      await navigator.clipboard.writeText(message);
+      setCopyStatus("Ringkasan berhasil disalin. Anda dapat menempelkannya pada percakapan WhatsApp.");
+    } catch {
+      setCopyStatus("Penyalinan otomatis tidak tersedia di browser ini. Pilih dan salin teks ringkasan secara manual.");
+    }
+  }
+
+  if (!loaded) return <div className="form-loading" role="status">Memuat ringkasan…</div>;
+
   const fields: [string, string][] = [
-    ["Produk / kategori", draft.product],
-    ["Jumlah kebutuhan", draft.quantity],
+    ["Produk atau kategori", draft.product],
+    ["Perkiraan jumlah", draft.quantity],
     ["Ukuran", draft.size],
-    ["Material", draft.material],
-    ["Bentuk / potongan", draft.shape],
+    ["Bahan", draft.material],
+    ["Bentuk atau model", draft.shape],
     ["Perkiraan anggaran", draft.budget],
-    ["Desain / referensi", draft.referenceFileName],
+    ["Desain/referensi", draft.referenceFileName],
+    ["Catatan", draft.notes],
     ["Nama", draft.name],
     ["Nomor WhatsApp", draft.whatsapp],
   ];
 
   return (
     <div className="summary-layout">
-      <section className="summary-card">
-        <h2>Ringkasan Kebutuhan</h2>
-        <p className="muted">Periksa kembali informasi yang ingin Anda diskusikan.</p>
+      <section className="summary-card" aria-labelledby="summary-heading">
+        <h2 id="summary-heading">Ringkasan kebutuhan</h2>
+        <p className="muted">Periksa kembali informasi sebelum diteruskan ke pihak Cinderella Printing.</p>
         {fields.map(([label, value]) => (
           <div className="summary-row" key={label}>
             <span>{label}</span>
-            <strong>{value || "Belum Tahu"}</strong>
+            <strong>{value.trim() || "Belum diisi"}</strong>
           </div>
         ))}
-        <Link href="/konsultasi" className="button button-outline">← Ubah Informasi</Link>
+        <p className="notice">
+          Ringkasan ini dibuat di browser dan belum dikirim ke database. File referensi
+          juga belum terunggah; lampirkan file secara manual setelah chat WhatsApp terbuka.
+        </p>
+        <Link href="/konsultasi" className="button button-outline">← Ubah informasi</Link>
       </section>
       <aside className="summary-aside">
-        <h2>Lanjutkan Konsultasi</h2>
-        <p>Gunakan ringkasan ini sebagai bahan diskusi. Spesifikasi dan penawaran harga dibahas bersama pihak Cinderella Printing.</p>
-        <Link className="button button-dark button-full" href="/faq-kontak">Lanjutkan ke Kontak ↗</Link>
-        <p className="helper">Ringkasan ini belum dikirim sebagai pesanan dan tidak merupakan persetujuan pembayaran.</p>
+        <h2>Lanjutkan konsultasi</h2>
+        <p>Ringkasan akan disiapkan sebagai pesan WhatsApp. Tinjau pesan sebelum menekan tombol kirim di WhatsApp.</p>
+        {whatsappUrl ? (
+          <a className="button button-dark button-full" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+            Buka WhatsApp dengan Ringkasan ↗
+          </a>
+        ) : (
+          <>
+            <p className="helper">Nomor WhatsApp resmi belum dikonfigurasi. Salin ringkasan, lalu gunakan informasi kontak resmi pada halaman berikut.</p>
+            <button type="button" className="button button-dark button-full" onClick={copySummary}>Salin Ringkasan</button>
+            <Link href="/faq-kontak" className="button button-outline button-full">Lihat Kontak</Link>
+          </>
+        )}
+        {whatsappUrl && <button type="button" className="button button-outline button-full" onClick={copySummary}>Salin Teks Ringkasan</button>}
+        <p className="helper" aria-live="polite">{copyStatus}</p>
+        <p className="helper">Pesan ini merupakan permintaan konsultasi, bukan pesanan yang telah dikonfirmasi atau persetujuan pembayaran.</p>
       </aside>
     </div>
   );
@@ -294,14 +455,42 @@ export function ConsultationSummary() {
 
 export function FaqList() {
   const faqs: [string, string][] = [
-    ["Bagaimana cara mulai memesan?", "Mulai dengan memilih kategori produk atau menjelaskan kebutuhan Anda melalui konsultasi. Setelah kebutuhan dibahas, Cinderella Printing dapat menyusun penawaran sesuai spesifikasi yang disepakati."],
-    ["Apakah harus tahu semua spesifikasi?", "Tidak. Anda dapat memulai dari jenis produk atau fungsi kemasan yang dibutuhkan. Jumlah, ukuran, material, dan detail lain dapat dibahas saat konsultasi."],
-    ["Berapa minimum pemesanannya?", "Minimum pemesanan bergantung pada produk dan spesifikasi. Informasi MOQ perlu dikonfirmasi saat konsultasi."],
-    ["Bagaimana mengetahui harga produk?", "Harga tidak ditetapkan hanya dari contoh katalog. Penawaran dibahas berdasarkan jenis produk, jumlah, ukuran, material, dan kebutuhan kustomisasi."],
-    ["Apakah bisa konsultasi tanpa desain final?", "Anda dapat memulai konsultasi tanpa desain final. Gambar referensi, sketsa, atau penjelasan kebutuhan dapat digunakan sebagai bahan diskusi."],
-    ["Berapa lama proses produksinya?", "Estimasi waktu produksi perlu dikonfirmasi setelah spesifikasi, jumlah, dan desain dibahas."],
-    ["Apa pilihan material dan ukuran yang tersedia?", "Pilihan material dan ukuran bergantung pada kategori serta kebutuhan produk. Detail yang tersedia dikonfirmasi saat konsultasi."],
-    ["Bagaimana proses pengirimannya?", "Metode dan jadwal pengiriman dibahas berdasarkan lokasi serta kebutuhan pesanan setelah detail produksi disepakati."],
+    [
+      "Bagaimana cara memulai konsultasi?",
+      "Pilih kategori yang paling mendekati kebutuhan Anda, lalu siapkan informasi awal melalui formulir konsultasi atau hubungi Cinderella Printing melalui WhatsApp. Anda tidak harus mengetahui seluruh spesifikasi sejak awal.",
+    ],
+    [
+      "Apakah formulir konsultasi langsung membuat pesanan?",
+      "Tidak. Formulir hanya membantu menyusun ringkasan kebutuhan untuk dibahas. Pesanan dicatat dan dikelola oleh admin setelah konsultasi, rincian produk, harga, dan persetujuan pesanan dikonfirmasi.",
+    ],
+    [
+      "Apakah saya harus mengetahui semua spesifikasi?",
+      "Tidak. Anda dapat memulai dari jenis produk, fungsi kemasan, atau contoh yang diinginkan. Jumlah, ukuran, bahan, dan detail lainnya dapat dibahas kemudian.",
+    ],
+    [
+      "Berapa jumlah minimum pemesanan?",
+      "Jumlah minimum dapat berbeda menurut jenis produk dan spesifikasinya. Tanyakan jumlah minimum untuk kebutuhan Anda saat konsultasi agar informasinya sesuai dengan produk yang dipilih.",
+    ],
+    [
+      "Bagaimana cara mengetahui harga?",
+      "Harga dibahas melalui penawaran setelah jenis produk, jumlah, ukuran, bahan, dan kebutuhan kustomisasi diperjelas. Informasi pada katalog bukan harga transaksi final.",
+    ],
+    [
+      "Apakah bisa konsultasi tanpa desain final?",
+      "Bisa. Anda dapat memulai dengan penjelasan kebutuhan, sketsa, atau contoh referensi. Jika memiliki file desain, lampirkan saat melanjutkan percakapan WhatsApp.",
+    ],
+    [
+      "Berapa lama proses produksi?",
+      "Estimasi waktu perlu dikonfirmasi setelah jenis produk, jumlah, spesifikasi, dan desain disepakati. Jangan menganggap estimasi berlaku sama untuk semua kategori.",
+    ],
+    [
+      "Bahan dan ukuran apa saja yang tersedia?",
+      "Pilihan bahan dan ukuran bergantung pada kategori serta kebutuhan produk. Sampaikan fungsi produk dan ukuran perkiraan saat konsultasi agar pilihan yang tersedia dapat diperiksa.",
+    ],
+    [
+      "Bagaimana pengiriman dilakukan?",
+      "Metode, biaya, dan jadwal pengiriman dibahas berdasarkan lokasi tujuan serta detail pesanan setelah kebutuhan produksi dikonfirmasi.",
+    ],
   ];
 
   return (

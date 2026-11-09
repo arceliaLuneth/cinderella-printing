@@ -15,52 +15,49 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   return (
     <>
       <div className="container page-intro">
-        <div className="breadcrumb">Beranda / Produk / {product.category} / {product.name}</div>
+        <nav className="breadcrumb" aria-label="Breadcrumb">
+          <Link href="/">Beranda</Link> / <Link href="/produk">Produk</Link> / <span aria-current="page">{product.category}</span>
+        </nav>
       </div>
       <section className="container product-detail">
         <div>
-          <div className="image-placeholder detail-image" role="img" aria-label={`Foto ${product.category.toLowerCase()}`}>
-            Foto produk akan ditambahkan
+          <div className="image-placeholder detail-image" role="img" aria-label={`Foto ${product.category} akan ditambahkan`}>
+            Foto {product.category.toLowerCase()} akan ditambahkan
           </div>
-          <p className="helper">Foto dan detail visual perlu menggunakan materi produk yang telah disetujui.</p>
+          <p className="helper">Foto produk resmi akan ditambahkan setelah materi dari pihak usaha tersedia.</p>
         </div>
         <div>
-          <p className="eyebrow">{product.category}</p>
-          <h1>{product.name}</h1>
+          <p className="eyebrow">KATEGORI PRODUK</p>
+          <h1>{product.category}</h1>
           <p className="lead">{product.description}</p>
           <p className="muted">
-            Gunakan referensi ini sebagai titik awal diskusi. Spesifikasi,
-            kemungkinan kustomisasi, dan penawaran harga dikonfirmasi saat konsultasi.
+            Halaman ini membantu mengidentifikasi kebutuhan awal. Detail produksi
+            dan ketersediaan opsi perlu diperiksa bersama pihak Cinderella Printing.
           </p>
           <div className="spec-list">
-            <div><span>Minimum pemesanan (MOQ)</span><strong>{product.moq}</strong></div>
-            <div><span>Material</span><strong>{product.material}</strong></div>
+            <div><span>Jumlah minimum</span><strong>{product.moq}</strong></div>
+            <div><span>Pilihan bahan</span><strong>{product.material}</strong></div>
             <div><span>Ukuran</span><strong>{product.size}</strong></div>
           </div>
-          <Link href={`/konsultasi?produk=${encodeURIComponent(product.name)}`} className="button button-dark button-full">Konsultasikan Produk Ini →</Link>
-          <Link href="/faq-kontak" className="button button-outline button-full">Lihat Informasi Kontak ↗</Link>
-          <p className="helper">Belum mengetahui jumlah atau ukuran? Anda tetap dapat memulai konsultasi.</p>
+          <Link href={`/konsultasi?produk=${encodeURIComponent(product.name)}`} className="button button-dark button-full">Bahas Kategori Ini →</Link>
+          <Link href="/faq-kontak" className="button button-outline button-full">Lihat FAQ &amp; Kontak</Link>
+          <p className="helper">Belum mengetahui jumlah, bahan, atau ukuran? Informasi tersebut boleh dibahas saat konsultasi.</p>
         </div>
       </section>
       <section className="section-soft">
         <div className="container">
-          <h2>Detail yang dapat dibahas</h2>
-          <p className="section-desc">Informasi berikut menjadi bahan konsultasi dan bukan spesifikasi yang sudah disepakati.</p>
+          <h2>Informasi yang perlu dibahas</h2>
+          <p className="section-desc">Informasi berikut membantu menentukan spesifikasi. Ketersediaannya belum dapat diasumsikan dari contoh kategori.</p>
           <div className="info-grid three">
-            {[
-              ["Material & Ukuran", "Diskusikan bahan dan dimensi yang sesuai dengan fungsi produk."],
-              ["Bentuk & Konstruksi", "Jelaskan bentuk, struktur, atau cara penggunaan produk yang dibutuhkan."],
-              ["Cetak & Finishing", "Bahas kebutuhan tampilan visual dan detail akhir produk."],
-            ].map(([title, text]) => (
-              <article className="info-card" key={title}><h3>{title}</h3><p>{text}</p><small>Dikonfirmasi saat konsultasi</small></article>
-            ))}
+            <article className="info-card"><h3>Fungsi dan penggunaan</h3><p>Jelaskan produk yang akan dikemas dan kondisi penggunaannya.</p></article>
+            <article className="info-card"><h3>Bahan dan ukuran</h3><p>Bahas pilihan bahan dan dimensi yang sesuai dengan kebutuhan produk.</p></article>
+            <article className="info-card"><h3>Cetak dan tampilan akhir</h3><p>Diskusikan kebutuhan desain, warna, dan hasil akhir yang diinginkan.</p></article>
           </div>
-          <p className="notice">Ketersediaan setiap opsi produksi perlu dikonfirmasi berdasarkan kategori dan kebutuhan produk.</p>
         </div>
       </section>
       <section className="section container">
         <h2>Jelajahi kategori lainnya</h2>
-        <p className="section-desc">Bandingkan referensi lain untuk membantu menjelaskan kebutuhan Anda.</p>
+        <p className="section-desc">Bandingkan referensi kategori lain sebelum menyiapkan konsultasi.</p>
         <Link href="/produk" className="text-link">Kembali ke katalog produk →</Link>
       </section>
       <CtaBand />

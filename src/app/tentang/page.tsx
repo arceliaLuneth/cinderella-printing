@@ -1,18 +1,19 @@
 import { CtaBand, PageIntro, WhatsAppLink } from "@/components/site";
 
-const principles = [
-  ["Mulai dari Kebutuhan", "Pelanggan dapat memulai konsultasi dari fungsi produk, ide, atau referensi yang sudah dimiliki."],
-  ["Spesifikasi Dibahas Bersama", "Jumlah, ukuran, material, bentuk, dan desain dapat diperjelas dalam pembahasan kebutuhan."],
-  ["Penawaran Berdasarkan Kebutuhan", "Penawaran harga disusun setelah detail produk dan kebutuhan kustomisasi dibahas."],
+const discussionPoints = [
+  ["Jenis produk", "Produk yang akan dicetak atau jenis barang yang akan dikemas."],
+  ["Jumlah dan ukuran", "Perkiraan jumlah serta dimensi yang dibutuhkan. Informasi awal sudah cukup untuk memulai diskusi."],
+  ["Bahan dan bentuk", "Bahan atau bentuk yang diinginkan, apabila sudah diketahui."],
+  ["Desain dan referensi", "Desain, sketsa, atau contoh visual untuk membantu menjelaskan arah produk."],
 ];
 
-const steps = [
-  ["01 / CONSULTATION", "Konsultasi", "Sampaikan produk yang dibutuhkan, perkiraan jumlah, dan spesifikasi awal."],
-  ["02 / QUOTATION", "Penawaran Harga", "Kebutuhan dan spesifikasi dibahas sebagai dasar penawaran harga."],
-  ["03 / DESIGN APPROVAL", "Persetujuan Desain", "Tinjau dan setujui desain sebelum proses produksi."],
-  ["04 / PRODUCTION", "Produksi", "Produksi dilakukan berdasarkan spesifikasi dan desain yang disepakati."],
-  ["05 / QUALITY CONTROL", "Kontrol Kualitas", "Hasil produksi diperiksa sebelum memasuki tahap pengiriman."],
-  ["06 / DELIVERY", "Pengiriman", "Metode dan jadwal pengiriman dibahas sesuai kebutuhan pesanan."],
+const process = [
+  ["Konsultasi", "Kebutuhan awal dan tujuan penggunaan produk dibahas bersama."],
+  ["Penawaran harga", "Penawaran disusun berdasarkan rincian produk dan spesifikasi yang telah dibahas."],
+  ["Persetujuan desain", "Pelanggan meninjau dan menyetujui desain sebelum pengerjaan."],
+  ["Produksi", "Pengerjaan mengikuti rincian dan desain yang disepakati."],
+  ["Pemeriksaan kualitas", "Hasil produksi diperiksa sebelum disiapkan untuk pengiriman."],
+  ["Pengiriman", "Metode dan jadwal dibahas sesuai lokasi serta detail pesanan."],
 ];
 
 export default function AboutPage() {
@@ -21,37 +22,38 @@ export default function AboutPage() {
       <PageIntro
         eyebrow="MENGENAL CINDERELLA PRINTING"
         title="Tentang Cinderella Printing"
-        description="Kenali pendekatan layanan cetak dan kemasan custom, serta pahami tahapan konsultasi sebelum kebutuhan produksi disepakati."
+        description="Kenali layanan cetak dan kemasan, informasi yang dapat disiapkan, serta alur pembahasan kebutuhan sebelum pesanan disepakati."
         breadcrumb="Tentang Kami"
       />
 
       <section className="section container about-feature">
-        <div className="image-placeholder feature-image" role="img" aria-label="Foto produk atau aktivitas Cinderella Printing">
-          Foto produk atau aktivitas perusahaan
+        <div className="image-placeholder feature-image" role="img" aria-label="Foto produk atau kegiatan Cinderella Printing akan ditambahkan">
+          Foto produk atau kegiatan usaha akan ditambahkan
         </div>
         <div>
-          <p className="eyebrow">CUSTOM PRINTING &amp; PACKAGING</p>
-          <h2>Cetak dan kemasan yang berangkat dari kebutuhan bisnis.</h2>
+          <p className="eyebrow">CETAK &amp; KEMASAN CUSTOM</p>
+          <h2>Informasi yang jelas membantu kebutuhan dibahas dengan tepat.</h2>
           <p>
-            Cinderella Printing berfokus pada kebutuhan cetak dan kemasan custom.
-            Website ini menjadi media informasi bagi pelanggan untuk mengenal
-            kategori produk, melihat referensi, dan menyiapkan kebutuhan sebelum
-            berdiskusi lebih lanjut.
+            Cinderella Printing merupakan UMKM percetakan yang menjadi objek
+            pengembangan website ini. Situs publik disiapkan sebagai tempat untuk
+            mengenal usaha, menjelajahi kategori produk, melihat referensi, dan
+            memulai konsultasi kebutuhan cetak maupun kemasan.
           </p>
-          <p className="muted">
-            Setiap kebutuhan dapat memiliki spesifikasi yang berbeda. Karena itu,
-            ukuran, material, jumlah, desain, dan penawaran dibahas melalui proses konsultasi.
+          <p>
+            Setiap permintaan dapat memiliki kebutuhan yang berbeda. Karena itu,
+            jenis produk, jumlah, ukuran, bahan, desain, dan penawaran perlu
+            dibahas serta dikonfirmasi sebelum pesanan dicatat oleh admin.
           </p>
-          <WhatsAppLink label="Diskusikan Kebutuhan Anda" />
+          <WhatsAppLink label="Tanya tentang kebutuhan produk" />
         </div>
       </section>
 
       <section className="section-soft">
         <div className="container">
-          <h2>Pendekatan kami</h2>
-          <p className="section-desc">Proses dimulai dari informasi yang sudah Anda miliki, tanpa mengharuskan semua spesifikasi tersedia sejak awal.</p>
-          <div className="info-grid three">
-            {principles.map(([title, text]) => (
+          <h2>Informasi yang dapat disiapkan</h2>
+          <p className="section-desc">Tidak harus lengkap. Informasi berikut membantu konsultasi menjadi lebih terarah.</p>
+          <div className="info-grid two">
+            {discussionPoints.map(([title, text]) => (
               <article className="info-card" key={title}><h3>{title}</h3><p>{text}</p></article>
             ))}
           </div>
@@ -59,22 +61,24 @@ export default function AboutPage() {
       </section>
 
       <section className="section container">
-        <h2>Bagaimana proses pemesanan berlangsung?</h2>
-        <p className="section-desc">Dari konsultasi awal hingga pengiriman, detail dan jadwal dibahas berdasarkan kebutuhan pesanan.</p>
-        <div className="info-grid three">
-          {steps.map(([eyebrow, title, text]) => (
-            <article className="info-card" key={eyebrow}>
-              <small>{eyebrow}</small><h3>{title}</h3><p>{text}</p>
-            </article>
+        <h2>Alur konsultasi dan pemesanan</h2>
+        <p className="section-desc">Berikut gambaran umum tahapan yang dibahas. Ketentuan, waktu, dan detail aktual dikonfirmasi untuk setiap pesanan.</p>
+        <ol className="process-list">
+          {process.map(([title, text], index) => (
+            <li className="process-item" key={title}>
+              <span className="process-number">{String(index + 1).padStart(2, "0")}</span>
+              <div><h3>{title}</h3><p>{text}</p></div>
+            </li>
           ))}
-        </div>
+        </ol>
         <p className="notice">
-          MOQ, ketersediaan material, spesifikasi produksi, estimasi waktu, dan
-          ketentuan pengiriman harus dikonfirmasi saat konsultasi serta penawaran.
+          Jumlah minimum pemesanan, pilihan bahan, estimasi waktu produksi, biaya,
+          dan ketentuan pengiriman tidak disamaratakan. Pastikan semuanya dikonfirmasi
+          sebelum menyetujui pesanan.
         </p>
       </section>
 
-      <CtaBand title="Mari mulai dari kebutuhan produk Anda." text="Pilih kategori produk atau hubungi Cinderella Printing untuk membahas ide dan spesifikasi awal." />
+      <CtaBand title="Mulai dari informasi yang sudah Anda miliki." text="Pilih kategori produk atau sampaikan kebutuhan awal melalui konsultasi." />
     </>
   );
 }

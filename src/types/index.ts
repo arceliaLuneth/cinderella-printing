@@ -26,4 +26,5 @@ export interface ConsultationDraft {
   name: string;
   whatsapp: string;
   referenceFileName: string;
+  notes: string;
 }

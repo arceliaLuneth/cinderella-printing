@@ -6,21 +6,21 @@ export default function DiscoveryPage() {
   return (
     <>
       <PageIntro
-        eyebrow="TEMUKAN ARAH PRODUK"
-        title="Apa yang Anda Butuhkan?"
-        description="Pilih kategori yang paling mendekati kebutuhan Anda. Tidak perlu mengetahui seluruh spesifikasi untuk memulai konsultasi."
-        breadcrumb="Cari Produk"
+        eyebrow="BANTU MENENTUKAN KATEGORI"
+        title="Mulai dari kebutuhan produk"
+        description="Pilih kategori yang paling mendekati kebutuhan Anda. Jika belum tahu nama atau spesifikasinya, mulai dari fungsi produk yang ingin dibuat."
+        breadcrumb="Bantu Saya Memilih"
       />
       <section className="section container">
-        <h2>Mulai dari kategori</h2>
-        <p className="section-desc">Jelajahi referensi produk, lihat detail, atau konsultasikan kebutuhan khusus Anda.</p>
+        <h2>Pilih kategori awal</h2>
+        <p className="section-desc">Pilihan ini membantu mengarahkan konsultasi, bukan membatasi bentuk produk yang dapat ditanyakan.</p>
         <CategoryGrid />
         <div className="notice notice-row">
-          <div><h2>Belum Menentukan Produk?</h2><p>Ceritakan fungsi produk atau jenis kemasan yang Anda butuhkan. Spesifikasi dapat dibahas bersama.</p></div>
-          <Link href="/konsultasi" className="button button-dark">Bantu Saya Memilih →</Link>
+          <div><h2>Belum yakin kategori mana yang tepat?</h2><p>Ceritakan fungsi produk atau barang yang akan dikemas. Detail dapat dibahas kemudian.</p></div>
+          <Link href="/konsultasi" className="button button-dark">Siapkan Konsultasi →</Link>
         </div>
       </section>
-      <CtaBand title="Lebih nyaman bertanya langsung?" text="Siapkan kebutuhan awal Anda dan lanjutkan melalui kanal konsultasi Cinderella Printing." />
+      <CtaBand title="Lebih nyaman bertanya langsung?" text="Hubungi Cinderella Printing melalui informasi kontak yang telah dikonfirmasi." />
     </>
   );
 }

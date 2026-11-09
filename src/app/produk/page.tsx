@@ -5,13 +5,13 @@ export default function ProductsPage() {
   return (
     <>
       <PageIntro
-        eyebrow="EKSPLORASI PRODUK"
+        eyebrow="JELAJAHI KATEGORI"
         title="Katalog Produk"
-        description="Jelajahi referensi cetak dan kemasan untuk kebutuhan bisnis Anda. Ukuran, material, jumlah, dan penawaran harga dibahas melalui konsultasi."
+        description="Temukan kategori cetak dan kemasan yang mendekati kebutuhan Anda. Informasi bahan, ukuran, jumlah minimum, dan harga dikonfirmasi melalui konsultasi."
         breadcrumb="Produk"
       />
       <section className="section container"><CatalogBrowser /></section>
-      <CtaBand title="Belum menemukan kategori yang sesuai?" text="Sampaikan fungsi dan bentuk produk yang Anda butuhkan. Kebutuhan custom dapat dibahas melalui konsultasi." />
+      <CtaBand title="Belum menemukan kategori yang sesuai?" text="Jelaskan fungsi atau bentuk produk yang Anda butuhkan. Kebutuhan khusus dapat dibahas bersama." />
     </>
   );
 }
