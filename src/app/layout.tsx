@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { Header, Footer } from "@/components/site";
-import MotionProvider from "@/components/motion-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,13 +13,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id">
-      <body>
-        <MotionProvider>
-          <Header />
-          <main id="main-content">{children}</main>
-          <Footer />
-        </MotionProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
