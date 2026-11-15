@@ -25,7 +25,7 @@ import {
 type ModalState = { mode: "create" } | { mode: "edit"; order: Order } | null;
 
 export default function AdminOrdersPage() {
-  const { orders, deleteOrder, updateOrderStatus } = useAdminData();
+  const { orders, deleteOrder } = useAdminData();
   const { notify } = useToast();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | OrderStatus>("all");
@@ -48,11 +48,6 @@ export default function AdminOrdersPage() {
   const activeCount = orders.filter(
     (order) => order.status !== "selesai" && order.status !== "dibatalkan"
   ).length;
-
-  function handleStatusChange(order: Order, nextStatus: OrderStatus) {
-    updateOrderStatus(order.id, nextStatus);
-    notify(`Status ${order.number} diubah menjadi ${orderStatusMeta[nextStatus].label}.`, "info");
-  }
 
   function handleDelete() {
     if (!deleteTarget) return;
@@ -191,24 +186,7 @@ export default function AdminOrdersPage() {
                         <strong>{formatCurrency(orderTotal(order))}</strong>
                       </td>
                       <td>
-                        <div className="admin-status-control">
-                          <StatusBadge label={meta.label} tone={meta.tone} />
-                          <label className="admin-select admin-select--compact">
-                            <span className="sr-only">Ubah status {order.number}</span>
-                            <select
-                              value={order.status}
-                              onChange={(event) =>
-                                handleStatusChange(order, event.target.value as OrderStatus)
-                              }
-                            >
-                              {orderStatusOptions.map(([value, option]) => (
-                                <option value={value} key={value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                        </div>
+                        <StatusBadge label={meta.label} tone={meta.tone} />
                       </td>
                       <td className="admin-table-actions-col">
                         <div className="admin-row-actions">

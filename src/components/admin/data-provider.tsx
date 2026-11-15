@@ -32,7 +32,7 @@ import {
 import { createId, slugify } from "@/lib/admin/format";
 import { useClientReady } from "@/components/admin/use-client-ready";
 
-const STORAGE_KEY = "cinderella-admin-demo-v1";
+const STORAGE_KEY = "cinderella-admin-v3";
 
 interface AdminDataState {
   categories: Category[];
@@ -78,6 +78,8 @@ function seedData(): AdminDataState {
 function loadInitialData(): AdminDataState {
   if (typeof window === "undefined") return seedData();
   try {
+    sessionStorage.removeItem("cinderella-admin-demo-v1");
+    sessionStorage.removeItem("cinderella-admin-data-v2");
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return seedData();
     const parsed = JSON.parse(raw) as Partial<AdminDataState>;
@@ -88,12 +90,18 @@ function loadInitialData(): AdminDataState {
       Array.isArray(parsed.orders) &&
       Array.isArray(parsed.invoices)
     ) {
+      const cleanOrders = parsed.orders.filter(
+        (o) => !o.id.startsWith("ord-") && !o.number?.startsWith("CP-2026-01")
+      );
+      const cleanInvoices = parsed.invoices.filter(
+        (i) => !i.id.startsWith("inv-") && !i.number?.startsWith("INV/2026/")
+      );
       return {
         categories: parsed.categories,
         products: parsed.products,
         customers: parsed.customers,
-        orders: parsed.orders,
-        invoices: parsed.invoices,
+        orders: cleanOrders,
+        invoices: cleanInvoices,
       };
     }
   } catch {
