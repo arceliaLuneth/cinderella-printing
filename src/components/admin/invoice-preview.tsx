@@ -1,3 +1,4 @@
+﻿import Image from "next/image";
 import type { Invoice } from "@/types/admin";
 import {
   calculateInvoiceTotals,
@@ -22,9 +23,14 @@ export function InvoicePreview({
     <article className="invoice-paper" aria-label={`Invoice ${invoice.number}`}>
       <header className="invoice-head">
         <div className="invoice-brand">
-          <span className="invoice-logo" aria-hidden="true">
-            C
-          </span>
+          <Image
+            src="/admin-logo.png"
+            alt="Cinderella Printing"
+            width={48}
+            height={48}
+            className="invoice-logo-img"
+            priority
+          />
           <div>
             <strong>{COMPANY_PROFILE.name}</strong>
             <small>{COMPANY_PROFILE.tagline}</small>
@@ -109,9 +115,6 @@ export function InvoicePreview({
         <section className="invoice-notes">
           <h2>Catatan</h2>
           <p>{invoice.notes || COMPANY_PROFILE.paymentNote}</p>
-          <p className="invoice-demo-note">
-            Dokumen contoh untuk simulasi frontend. Bukan invoice transaksi sebenarnya.
-          </p>
         </section>
         <dl className="invoice-totals">
           <div>
@@ -121,10 +124,6 @@ export function InvoicePreview({
           <div>
             <dt>Diskon</dt>
             <dd>-{formatCurrency(totals.discount)}</dd>
-          </div>
-          <div>
-            <dt>Pajak ({invoice.taxPercent}%)</dt>
-            <dd>{formatCurrency(totals.tax)}</dd>
           </div>
           <div className="invoice-grand-total">
             <dt>Total</dt>

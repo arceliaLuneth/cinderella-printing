@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useId, useState, type FormEvent } from "react";
 import type { Category, CategoryStatus } from "@/types/admin";

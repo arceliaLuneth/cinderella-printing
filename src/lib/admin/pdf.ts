@@ -1,4 +1,4 @@
-import { jsPDF } from "jspdf";
+﻿import { jsPDF } from "jspdf";
 import type { Invoice } from "@/types/admin";
 import { calculateInvoiceTotals, formatCurrencyPlain, formatDate, formatNumber } from "@/lib/admin/format";
 import { COMPANY_PROFILE } from "@/lib/admin/company";
@@ -18,7 +18,19 @@ function safe(value: string) {
     .replace(/\u00A0/g, " ");
 }
 
-export function downloadInvoicePdf(invoice: Invoice, orderNumber?: string) {
+async function loadLogo(): Promise<HTMLImageElement | null> {
+  if (typeof window === "undefined") return null;
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = "/admin-logo.png";
+  });
+}
+
+export async function downloadInvoicePdf(invoice: Invoice, orderNumber?: string) {
+  const logoImg = await loadLogo();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -36,12 +48,16 @@ export function downloadInvoicePdf(invoice: Invoice, orderNumber?: string) {
     drawTopBar();
     let cursor = 18;
 
-    doc.setFillColor(...BRAND);
-    doc.roundedRect(margin, cursor, 11, 11, 2, 2, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("C", margin + 5.5, cursor + 7.3, { align: "center" });
+    if (logoImg) {
+      doc.addImage(logoImg, "PNG", margin, cursor, 11, 11);
+    } else {
+      doc.setFillColor(...BRAND);
+      doc.roundedRect(margin, cursor, 11, 11, 2, 2, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text("C", margin + 5.5, cursor + 7.3, { align: "center" });
+    }
 
     doc.setTextColor(...INK);
     doc.setFontSize(15);
@@ -131,11 +147,11 @@ export function downloadInvoicePdf(invoice: Invoice, orderNumber?: string) {
   }
 
   function drawTableHeader(cursor: number) {
-    doc.setFillColor(...SOFT);
+    doc.setFillColor(226, 232, 240);
     doc.rect(margin, cursor, right - margin, 9, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.setTextColor(...MUTED);
+    doc.setTextColor(30, 41, 59);
     doc.text("DESKRIPSI", margin + 3, cursor + 5.8);
     doc.text("JUMLAH", 124, cursor + 5.8, { align: "right" });
     doc.text("HARGA SATUAN", 162, cursor + 5.8, { align: "right" });
@@ -152,7 +168,6 @@ export function downloadInvoicePdf(invoice: Invoice, orderNumber?: string) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7.5);
       doc.setTextColor(...MUTED);
-      doc.text("Dokumen simulasi frontend - bukan invoice transaksi sebenarnya.", margin, pageHeight - 11);
       doc.text(`Halaman ${page} dari ${totalPages}`, right, pageHeight - 11, { align: "right" });
     }
   }
@@ -224,7 +239,6 @@ export function downloadInvoicePdf(invoice: Invoice, orderNumber?: string) {
   const rows: [string, string][] = [
     ["Subtotal", formatCurrencyPlain(totals.subtotal)],
     ["Diskon", `-${formatCurrencyPlain(totals.discount)}`],
-    [`Pajak (${invoice.taxPercent}%)`, formatCurrencyPlain(totals.tax)],
   ];
   rows.forEach(([label, value], index) => {
     doc.text(label, summaryX, y + 5.5 + index * 5);

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -301,12 +301,16 @@ export default function AdminOrderDetailPage() {
       </div>
 
       {editOpen && (
-        <OrderFormModal order={order} onClose={() => setEditOpen(false)} />
+        <OrderFormModal
+          order={order}
+          onClose={() => setEditOpen(false)}
+          onSaved={() => router.push("/admin/pesanan")}
+        />
       )}
       {deleteOpen && (
         <ConfirmDialog
           title="Hapus pesanan?"
-          message={`Pesanan ${order.number} akan dihapus. Pesanan dengan invoice terkait tidak dapat dihapus.`}
+          message={`Pesanan ${order.number} beserta invoice terkait akan dihapus.`}
           onConfirm={handleDelete}
           onCancel={() => setDeleteOpen(false)}
         />

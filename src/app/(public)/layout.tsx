@@ -1,4 +1,4 @@
-import { Footer, Header } from "@/components/site";
+﻿import { Footer, Header } from "@/components/site";
 import MotionProvider from "@/components/motion-provider";
 
 export default function PublicLayout({ children }: Readonly<{ children: React.ReactNode }>) {

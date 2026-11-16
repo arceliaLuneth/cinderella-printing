@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useId, useState, type FormEvent } from "react";
 import type { Product, ProductStatus } from "@/types/admin";

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Plus, Trash2 } from "lucide-react";
 import type { Product } from "@/types/admin";

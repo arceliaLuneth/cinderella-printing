@@ -244,7 +244,29 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
           number: nextOrderNumber(data.orders),
           items: buildLineItems(input.items),
         };
-        setData((current) => ({ ...current, orders: [order, ...current.orders] }));
+        const invoice: Invoice = {
+          id: createId("inv"),
+          number: nextInvoiceNumber(data.invoices, order.orderDate),
+          orderId: order.id,
+          customerId: order.customerId,
+          customerName: order.customerName,
+          customerCompany: order.customerCompany,
+          customerPhone: order.customerPhone,
+          customerAddress: order.customerAddress,
+          items: buildLineItems(input.items),
+          issueDate: order.orderDate,
+          dueDate: order.dueDate,
+          taxPercent: 0,
+          discount: 0,
+          notes: order.notes,
+          status: "draft",
+          createdAt: new Date().toISOString(),
+        };
+        setData((current) => ({
+          ...current,
+          orders: [order, ...current.orders],
+          invoices: [invoice, ...current.invoices],
+        }));
         return order;
       },
       updateOrder(id, input) {
@@ -271,15 +293,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
         }));
       },
       deleteOrder(id) {
-        if (data.invoices.some((invoice) => invoice.orderId === id)) {
-          return {
-            ok: false,
-            message: "Pesanan memiliki invoice terkait. Hapus invoice terlebih dahulu.",
-          };
-        }
         setData((current) => ({
           ...current,
           orders: current.orders.filter((order) => order.id !== id),
+          invoices: current.invoices.filter((invoice) => invoice.orderId !== id),
         }));
         return { ok: true };
       },

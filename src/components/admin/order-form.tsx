@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useId, useMemo, useState, type FormEvent } from "react";
 import type { Order, OrderStatus } from "@/types/admin";
@@ -85,7 +85,7 @@ export function OrderFormModal({
       onSaved?.({ ...order, ...input, items: order.items });
     } else {
       const created = addOrder(input);
-      notify(`Pesanan ${created.number} berhasil dibuat.`);
+      notify(`Pesanan ${created.number} dan invoice terkait berhasil dibuat.`);
       onSaved?.(created);
     }
     onClose();

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useId, useMemo, useState, type FormEvent } from "react";
 import type { Invoice, InvoiceStatus, LineItem, Order } from "@/types/admin";
@@ -42,7 +42,6 @@ export function InvoiceForm({
   const [issueDate, setIssueDate] = useState(invoice?.issueDate ?? todayISO());
   const [dueDate, setDueDate] = useState(invoice?.dueDate ?? addDaysISO(todayISO(), 14));
   const [status, setStatus] = useState<InvoiceStatus>(invoice?.status ?? "draft");
-  const [taxPercent, setTaxPercent] = useState(String(invoice?.taxPercent ?? 11));
   const [discount, setDiscount] = useState(String(invoice?.discount ?? 0));
   const [notes, setNotes] = useState(invoice?.notes ?? "");
   const [items, setItems] = useState<DraftItem[]>(() =>
@@ -58,14 +57,13 @@ export function InvoiceForm({
     () => items.reduce((sum, item) => sum + draftItemTotal(item), 0),
     [items]
   );
-  const numericTax = Number(taxPercent) || 0;
   const numericDiscount = Number(discount) || 0;
   const previewTotals = calculateInvoiceTotals({
     items: items.map((item) => ({
       quantity: Number(item.quantity) || 0,
       unitPrice: Number(item.unitPrice) || 0,
     })),
-    taxPercent: numericTax,
+    taxPercent: 0,
     discount: numericDiscount,
   });
 
@@ -88,10 +86,6 @@ export function InvoiceForm({
     }
     if (!issueDate || !dueDate) {
       setError("Tanggal invoice dan jatuh tempo wajib diisi.");
-      return;
-    }
-    if (numericTax < 0) {
-      setError("Persentase pajak tidak boleh negatif.");
       return;
     }
     if (numericDiscount < 0 || numericDiscount > subtotal) {
@@ -126,7 +120,7 @@ export function InvoiceForm({
       customerId,
       issueDate,
       dueDate,
-      taxPercent: numericTax,
+      taxPercent: 0,
       discount: numericDiscount,
       notes: notes.trim(),
       status,
@@ -249,35 +243,22 @@ export function InvoiceForm({
         <section className="admin-card">
           <div className="admin-card-head">
             <div>
-              <h2>Pajak dan catatan</h2>
-              <p>Atur diskon, pajak, serta instruksi pembayaran pada invoice.</p>
+              <h2>Diskon dan catatan</h2>
+              <p>Atur diskon serta instruksi pembayaran pada invoice.</p>
             </div>
           </div>
           <div className="admin-form">
-            <div className="admin-form-grid">
-              <label className="admin-field" htmlFor={`${id}-tax`}>
-                <span>Pajak (%)</span>
-                <input
-                  id={`${id}-tax`}
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  value={taxPercent}
-                  onChange={(event) => setTaxPercent(event.target.value)}
-                />
-              </label>
-              <label className="admin-field" htmlFor={`${id}-discount`}>
-                <span>Diskon (Rp)</span>
-                <input
-                  id={`${id}-discount`}
-                  type="number"
-                  min="0"
-                  step="1000"
-                  value={discount}
-                  onChange={(event) => setDiscount(event.target.value)}
-                />
-              </label>
-            </div>
+            <label className="admin-field" htmlFor={`${id}-discount`}>
+              <span>Diskon (Rp)</span>
+              <input
+                id={`${id}-discount`}
+                type="number"
+                min="0"
+                step="1000"
+                value={discount}
+                onChange={(event) => setDiscount(event.target.value)}
+              />
+            </label>
             <label className="admin-field" htmlFor={`${id}-notes`}>
               <span>Catatan invoice</span>
               <textarea
@@ -303,10 +284,6 @@ export function InvoiceForm({
             <div>
               <dt>Diskon</dt>
               <dd>-{formatCurrency(previewTotals.discount)}</dd>
-            </div>
-            <div>
-              <dt>Pajak ({numericTax}%)</dt>
-              <dd>{formatCurrency(previewTotals.tax)}</dd>
             </div>
             <div className="admin-summary-total">
               <dt>Total</dt>

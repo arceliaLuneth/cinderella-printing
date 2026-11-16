@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -65,10 +65,10 @@ export default function AdminInvoiceDetailPage() {
     window.print();
   }
 
-  function handleDownload() {
+  async function handleDownload() {
     if (!invoice) return;
     try {
-      downloadInvoicePdf(invoice, order?.number);
+      await downloadInvoicePdf(invoice, order?.number);
       notify("PDF invoice sedang diunduh.", "info");
     } catch {
       notify("PDF tidak dapat dibuat di browser ini. Gunakan tombol cetak.", "danger");

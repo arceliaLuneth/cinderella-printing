@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -37,7 +37,7 @@ export default function AdminNewInvoicePage() {
 
       <InvoiceForm
         initialOrder={initialOrder}
-        onSaved={(invoice) => router.push(`/admin/invoice/${invoice.id}`)}
+        onSaved={() => router.push("/admin/invoice")}
         onCancel={() => router.push("/admin/invoice")}
       />
     </>

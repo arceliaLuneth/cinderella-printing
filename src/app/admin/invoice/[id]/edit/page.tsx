@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -42,14 +42,14 @@ export default function AdminEditInvoicePage() {
       <AdminPageHeader
         eyebrow="Transaksi"
         title={`Edit ${invoice.number}`}
-        description="Perbarui pelanggan, item, pajak, atau status invoice."
+        description="Perbarui pelanggan, item, atau status invoice."
       />
 
       <InvoiceForm
         key={invoice.id}
         invoice={invoice}
-        onSaved={(updated) => router.push(`/admin/invoice/${updated.id}`)}
-        onCancel={() => router.push(`/admin/invoice/${invoice.id}`)}
+        onSaved={() => router.push("/admin/invoice")}
+        onCancel={() => router.push("/admin/invoice")}
       />
     </>
   );

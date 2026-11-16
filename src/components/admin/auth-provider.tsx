@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { createContext, useContext, useSyncExternalStore } from "react";
 import { DEMO_ADMIN_PASSWORD } from "@/lib/admin/company";

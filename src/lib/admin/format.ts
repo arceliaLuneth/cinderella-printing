@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   CategoryStatus,
   Invoice,
   InvoiceStatus,
@@ -72,13 +72,12 @@ export function orderTotal(order: Order) {
 
 export function calculateInvoiceTotals(invoice: {
   items: Pick<LineItem, "quantity" | "unitPrice">[];
-  taxPercent: number;
+  taxPercent?: number;
   discount: number;
 }): InvoiceTotals {
   const subtotal = itemsTotal(invoice.items);
   const discount = Math.min(Math.max(invoice.discount, 0), subtotal);
-  const tax = Math.round(((subtotal - discount) * Math.max(invoice.taxPercent, 0)) / 100);
-  return { subtotal, discount, tax, total: subtotal - discount + tax };
+  return { subtotal, discount, tax: 0, total: subtotal - discount };
 }
 
 export function invoiceTotal(invoice: Invoice) {

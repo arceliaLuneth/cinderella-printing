@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -164,7 +164,6 @@ export default function AdminInvoicesPage() {
                       <td>{formatDate(invoice.dueDate)}</td>
                       <td>
                         <strong>{formatCurrency(totals.total)}</strong>
-                        <small>termasuk pajak</small>
                       </td>
                       <td>
                         <StatusBadge label={meta.label} tone={meta.tone} />

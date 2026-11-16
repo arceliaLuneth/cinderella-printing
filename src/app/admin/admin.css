@@ -1,4 +1,4 @@
-.admin-root,
+﻿.admin-root,
 .admin-login,
 .admin-auth-loading {
   --admin-bg: #f2f4f3;
@@ -1679,6 +1679,13 @@
   gap: 11px;
 }
 
+.invoice-logo-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
 .invoice-logo {
   display: grid;
   width: 44px;
@@ -1844,13 +1851,14 @@
 }
 
 .invoice-table th {
-  padding: 9px 10px;
-  border-bottom: 1px solid #d9dedf;
-  background: #f2f7f8;
-  color: #687078;
-  font-size: 8.5px;
-  font-weight: 750;
-  letter-spacing: 0.07em;
+  padding: 10px 12px;
+  border-top: 1px solid #cbd5e1;
+  border-bottom: 2px solid #00a0e0;
+  background: #e2e8f0;
+  color: #1e293b;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-align: left;
   text-transform: uppercase;
 }

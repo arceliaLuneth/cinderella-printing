@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useId, type ReactNode } from "react";
 import { AlertTriangle, Search, X } from "lucide-react";

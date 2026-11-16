@@ -1,7 +1,9 @@
-export const COMPANY_PROFILE = {
+﻿export const COMPANY_PROFILE = {
   name: "Cinderella Printing",
   tagline: "Custom Printing & Packaging",
-  address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || "Jakarta, Indonesia",
+  address:
+    process.env.NEXT_PUBLIC_BUSINESS_ADDRESS ||
+    "2MF2+RRV, Lengkong, Kec. Bojongsoang, Kabupaten Bandung, Jawa Barat 40287",
   phone: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
     ? `+${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER.replace(/\D/g, "")}`
     : "+62 815-1169-3137",

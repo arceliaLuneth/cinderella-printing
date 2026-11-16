@@ -248,7 +248,7 @@ export default function AdminOrdersPage() {
       {deleteTarget && (
         <ConfirmDialog
           title="Hapus pesanan?"
-          message={`Pesanan ${deleteTarget.number} akan dihapus. Pesanan yang memiliki invoice terkait tidak dapat dihapus.`}
+          message={`Pesanan ${deleteTarget.number} beserta invoice terkait akan dihapus.`}
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
         />
