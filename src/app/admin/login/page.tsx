@@ -104,7 +104,7 @@ export default function AdminLoginPage() {
           </button>
         </form>
         <p className="admin-login-copyright">
-          © {new Date().getFullYear()} Cinderella Printing
+          © 2026 Cinderella Printing
         </p>
       </section>
     </div>

@@ -1,43 +1,42 @@
+import Image from "next/image";
 import { CtaBand, PageIntro } from "@/components/site";
 import { PortfolioBrowser } from "@/components/interactions";
+import { products } from "@/lib/site-data";
 
-export default function InspirationPage() {
+export default function PortfolioPage() {
+  const featured = products[4];
   return (
     <>
       <PageIntro
-        eyebrow="REFERENSI CETAK &amp; KEMASAN"
-        title="Inspirasi Produk"
-        description="Lihat referensi kategori untuk membantu menjelaskan bentuk, fungsi, dan arah desain produk yang ingin Anda diskusikan."
-        breadcrumb="Inspirasi Produk"
+        eyebrow="DOKUMENTASI PRODUK"
+        title="Hasil cetak dan kemasan."
+        description="Lihat beberapa contoh hasil produksi Cinderella Printing. Gunakan foto sebagai referensi awal untuk menjelaskan bentuk dan tampilan yang Anda inginkan."
+        breadcrumb="Portofolio"
       />
       <section className="section-soft">
-        <div className="container portfolio-feature">
-          <div className="image-placeholder feature-image" role="img" aria-label="Foto inspirasi produk akan ditambahkan">
-            Foto inspirasi produk akan ditambahkan
+        <div className="container portfolio-feature portfolio-feature--large">
+          <div className="portfolio-feature__image" data-motion-image>
+            <Image src={featured.image} alt={featured.imageAlt} fill priority sizes="(max-width: 760px) 92vw, 50vw" className="portfolio-feature__photo" />
           </div>
-          <div>
-            <p className="eyebrow">REFERENSI, BUKAN SPESIFIKASI FINAL</p>
-            <h2>Gunakan contoh untuk menjelaskan ide Anda.</h2>
-            <p className="muted">
-              Referensi visual membantu menyamakan gambaran mengenai bentuk,
-              fungsi, dan tampilan produk. Contoh pada halaman ini bukan janji
-              bahwa setiap bentuk atau material pasti tersedia untuk diproduksi.
-              Kelayakan dan detailnya perlu dikonfirmasi saat konsultasi.
-            </p>
+          <div data-motion="reveal">
+            <p className="eyebrow">PILIHAN HASIL PRODUKSI</p>
+            <h2>{featured.name}</h2>
+            <p>{featured.description}</p>
+            <p className="muted">Foto menampilkan hasil fisik produk. Bahan, ukuran, finishing, dan detail spesifikasi tidak disimpulkan dari gambar.</p>
           </div>
         </div>
       </section>
       <section className="section container">
-        <h2>Galeri inspirasi produk</h2>
-        <p className="section-desc">Pilih kategori yang paling mendekati kebutuhan Anda, kemudian gunakan sebagai bahan konsultasi.</p>
+        <div className="section-heading" data-motion="reveal">
+          <div>
+            <p className="eyebrow">GALERI PRODUK</p>
+            <h2>Jelajahi dokumentasi hasil produksi.</h2>
+            <p>Geser galeri untuk melihat contoh produk lainnya. Pilih salah satu sebagai referensi konsultasi.</p>
+          </div>
+        </div>
         <PortfolioBrowser />
-        <p className="notice">
-          Galeri saat ini berisi referensi kategori. Foto proyek aktual, nama klien,
-          dan detail pekerjaan hanya akan ditambahkan setelah materi serta izin
-          publikasinya dikonfirmasi.
-        </p>
       </section>
-      <CtaBand title="Memiliki contoh atau desain sendiri?" text="Sampaikan ide, sketsa, atau file referensi saat konsultasi. Desain final tidak harus tersedia untuk memulai diskusi." />
+      <CtaBand title="Punya referensi atau desain sendiri?" text="Kirimkan gambar, sketsa, atau ide saat konsultasi. Desain final tidak harus tersedia untuk memulai diskusi." />
     </>
   );
 }

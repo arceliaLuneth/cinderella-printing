@@ -3,14 +3,17 @@ import {
   BUSINESS_ADDRESS,
   BUSINESS_EMAIL,
   BUSINESS_HOURS,
+  BUSINESS_MEETING_NOTE,
+  INSTAGRAM_HANDLE,
+  INSTAGRAM_URL,
   WHATSAPP_NUMBER,
 } from "@/lib/site-data";
 
 const nav = [
   ["Beranda", "/"],
   ["Produk", "/produk"],
-  ["Inspirasi Produk", "/portofolio"],
-  ["Tentang Kami", "/tentang"],
+  ["Portofolio", "/portofolio"],
+  ["Tentang & Cara Pesan", "/tentang"],
   ["FAQ & Kontak", "/faq-kontak"],
 ] as const;
 
@@ -23,16 +26,10 @@ export function WhatsAppLink({
   className?: string;
   message?: string;
 }) {
-  const base = `https://wa.me/${WHATSAPP_NUMBER}`;
-  const href = `${base}?text=${encodeURIComponent(message)}`;
+  const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
   return (
-    <a
-      className={className}
-      href={href}
-      target={WHATSAPP_NUMBER ? "_blank" : undefined}
-      rel={WHATSAPP_NUMBER ? "noopener noreferrer" : undefined}
-    >
+    <a className={className} href={href} target="_blank" rel="noopener noreferrer">
       {label} ↗
     </a>
   );
@@ -51,7 +48,7 @@ export function Header() {
             <Link key={href} href={href}>{label}</Link>
           ))}
         </nav>
-        <WhatsAppLink label="Tanya via WhatsApp" />
+        <WhatsAppLink label="Konsultasi ↗" className="button button-dark header-cta" />
       </div>
     </header>
   );
@@ -64,34 +61,36 @@ export function Footer() {
         <div>
           <h3>Cinderella Printing</h3>
           <p>
-            Jelajahi referensi cetak dan kemasan, lalu siapkan kebutuhan produk
-            untuk dibahas melalui konsultasi. Spesifikasi dan penawaran
-            dikonfirmasi sebelum pesanan diproses.
+            Solusi cetak dan kemasan untuk kebutuhan bisnis. Jelajahi hasil produksi,
+            pahami pilihan awal, lalu diskusikan spesifikasi sebelum penawaran disusun.
           </p>
+          <p className="footer-tagline">Print ideas. Crafted for business.</p>
         </div>
         <div>
           <h4>Jelajahi</h4>
           <Link href="/produk">Katalog Produk</Link>
           <Link href="/cari-produk">Bantu Saya Memilih</Link>
-          <Link href="/portofolio">Inspirasi Produk</Link>
+          <Link href="/portofolio">Hasil Produksi</Link>
           <Link href="/tentang">Tentang &amp; Cara Pesan</Link>
           <Link href="/faq-kontak">FAQ &amp; Kontak</Link>
         </div>
         <div>
           <h4>Hubungi Kami</h4>
-          {WHATSAPP_NUMBER ? (
-            <p>WhatsApp: +{WHATSAPP_NUMBER}</p>
-          ) : (
-            <p>Kontak WhatsApp resmi akan ditampilkan setelah dikonfirmasi.</p>
-          )}
+          <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">
+            WhatsApp: +{WHATSAPP_NUMBER}
+          </a>
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+            Instagram: {INSTAGRAM_HANDLE}
+          </a>
           {BUSINESS_EMAIL && <p>Email: {BUSINESS_EMAIL}</p>}
-          {BUSINESS_ADDRESS && <p>Alamat: {BUSINESS_ADDRESS}</p>}
+          {BUSINESS_ADDRESS && <p>Office &amp; meeting point: {BUSINESS_ADDRESS}</p>}
+          <p className="footer-note">{BUSINESS_MEETING_NOTE}</p>
           {BUSINESS_HOURS && <p>Jam operasional: {BUSINESS_HOURS}</p>}
           <WhatsAppLink label="Mulai Konsultasi" className="button button-outline" />
         </div>
       </div>
       <div className="container footer-bottom">
-        <span>Cinderella Printing · Informasi Produk &amp; Konsultasi</span>
+        <span>© 2026 Cinderella Printing · Informasi Produk &amp; Konsultasi</span>
         <span>Pesanan dikonfirmasi setelah konsultasi dan persetujuan dengan pihak usaha.</span>
       </div>
     </footer>
@@ -110,7 +109,7 @@ export function PageIntro({
   breadcrumb: string;
 }) {
   return (
-    <div className="container page-intro">
+    <div className="container page-intro" data-motion="reveal">
       <nav className="breadcrumb" aria-label="Breadcrumb">
         <Link href="/">Beranda</Link> / <span aria-current="page">{breadcrumb}</span>
       </nav>
@@ -122,22 +121,23 @@ export function PageIntro({
 }
 
 export function CtaBand({
-  title = "Mulai dari kebutuhan produk Anda.",
-  text = "Pilih kategori yang paling mendekati kebutuhan, atau siapkan ringkasan untuk dibahas bersama Cinderella Printing.",
+  title = "Punya kebutuhan cetak atau kemasan?",
+  text = "Ceritakan kebutuhan awal Anda. Tim Cinderella Printing akan membantu membahas pilihan dan spesifikasi yang sesuai.",
 }: {
   title?: string;
   text?: string;
 }) {
   return (
-    <section className="cta-band">
+    <section className="cta-band" data-motion="reveal">
       <div className="container cta-inner">
         <div>
+          <p className="eyebrow cta-eyebrow">MULAI DARI KEBUTUHAN ANDA</p>
           <h2>{title}</h2>
           <p>{text}</p>
         </div>
         <div className="button-row">
-          <Link className="button button-dark" href="/konsultasi">Siapkan Konsultasi</Link>
-          <WhatsAppLink label="Tanya via WhatsApp" />
+          <Link className="button button-light" href="/konsultasi">Siapkan Konsultasi</Link>
+          <WhatsAppLink label="WhatsApp ↗" className="button button-outline cta-outline" />
         </div>
       </div>
     </section>

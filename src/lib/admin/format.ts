@@ -21,6 +21,7 @@ const dateFormatter = new Intl.DateTimeFormat("id-ID", {
   day: "numeric",
   month: "short",
   year: "numeric",
+  timeZone: "Asia/Jakarta",
 });
 
 export function formatCurrency(value: number) {
@@ -33,7 +34,7 @@ export function formatCurrencyPlain(value: number) {
 
 export function formatDate(value: string) {
   if (!value) return "—";
-  const date = new Date(`${value.slice(0, 10)}T00:00:00`);
+  const date = new Date(`${value.slice(0, 10)}T00:00:00+07:00`);
   if (Number.isNaN(date.getTime())) return value;
   return dateFormatter.format(date);
 }
@@ -45,16 +46,25 @@ export function formatDateTime(value: string) {
   return `${formatDate(value)} · ${new Intl.DateTimeFormat("id-ID", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Jakarta",
   }).format(date)}`;
 }
 
 export function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Jakarta",
+  }).formatToParts(new Date());
+  const part = (type: string) => parts.find((item) => item.type === type)?.value ?? "00";
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
 export function addDaysISO(value: string, days: number) {
-  const date = new Date(`${value.slice(0, 10)}T00:00:00`);
-  date.setDate(date.getDate() + days);
+  const [year, month, day] = value.slice(0, 10).split("-").map(Number);
+  if (![year, month, day].every(Number.isFinite)) return value;
+  const date = new Date(Date.UTC(year, month - 1, day + days));
   return date.toISOString().slice(0, 10);
 }
 

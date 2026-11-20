@@ -1,26 +1,20 @@
-import Link from "next/link";
 import { CtaBand, PageIntro } from "@/components/site";
-import { CategoryGrid } from "@/components/interactions";
+import { GuidedDiscovery } from "@/components/interactions";
 
 export default function DiscoveryPage() {
   return (
     <>
       <PageIntro
-        eyebrow="BANTU MENENTUKAN KATEGORI"
-        title="Mulai dari kebutuhan produk"
-        description="Pilih kategori yang paling mendekati kebutuhan Anda. Jika belum tahu nama atau spesifikasinya, mulai dari fungsi produk yang ingin dibuat."
+        eyebrow="PANDUAN MEMILIH PRODUK"
+        title="Mulai dari kebutuhan bisnis Anda."
+        description="Jawab dua langkah singkat untuk membantu menentukan kategori awal dan menyiapkan informasi konsultasi."
         breadcrumb="Bantu Saya Memilih"
       />
       <section className="section container">
-        <h2>Pilih kategori awal</h2>
-        <p className="section-desc">Pilihan ini membantu mengarahkan konsultasi, bukan membatasi bentuk produk yang dapat ditanyakan.</p>
-        <CategoryGrid />
-        <div className="notice notice-row">
-          <div><h2>Belum yakin kategori mana yang tepat?</h2><p>Ceritakan fungsi produk atau barang yang akan dikemas. Detail dapat dibahas kemudian.</p></div>
-          <Link href="/konsultasi" className="button button-dark">Siapkan Konsultasi →</Link>
-        </div>
+        <GuidedDiscovery />
+        <p className="notice">Panduan ini membantu mengarahkan konsultasi, bukan menentukan spesifikasi produksi secara otomatis. Ketersediaan produk, bahan, dan ukuran tetap dikonfirmasi bersama Cinderella Printing.</p>
       </section>
-      <CtaBand title="Lebih nyaman bertanya langsung?" text="Hubungi Cinderella Printing melalui informasi kontak yang telah dikonfirmasi." />
+      <CtaBand title="Lebih nyaman berdiskusi langsung?" text="Anda dapat melewati panduan dan menghubungi Cinderella Printing melalui WhatsApp." />
     </>
   );
 }

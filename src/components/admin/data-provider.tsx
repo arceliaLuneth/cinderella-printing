@@ -30,7 +30,6 @@ import {
   mockProducts,
 } from "@/lib/admin/mock-data";
 import { createId, slugify } from "@/lib/admin/format";
-import { useClientReady } from "@/components/admin/use-client-ready";
 
 const STORAGE_KEY = "cinderella-admin-v3";
 
@@ -160,9 +159,24 @@ function uniqueSlug(base: string, categories: Category[], excludeId?: string) {
 }
 
 export function AdminDataProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<AdminDataState>(loadInitialData);
-  const hydrated = useClientReady();
+  // Server and first client render both start from the same deterministic seed.
+  const [data, setData] = useState<AdminDataState>(() => seedData());
+  const [hydrated, setHydrated] = useState(false);
 
+  // Restore browser-only session data after hydration. Do not read sessionStorage in a state initializer.
+  useEffect(() => {
+    let cancelled = false;
+    const restored = loadInitialData();
+    if (!cancelled) {
+      setData(restored);
+      setHydrated(true);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Persist only after the initial browser data has been restored.
   useEffect(() => {
     if (!hydrated) return;
     try {

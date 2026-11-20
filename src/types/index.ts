@@ -1,8 +1,11 @@
 export type ProductCategory =
-  | "Packaging Makanan"
-  | "Pouch"
-  | "Cup"
-  | "Custom Packaging";
+  | "Packaging"
+  | "Branding"
+  | "Promosi"
+  | "Office"
+  | "Kemasan Khusus"
+  | "Label & Sleeve"
+  | "Lainnya";
 
 export interface Product {
   id: string;
@@ -13,7 +16,8 @@ export interface Product {
   moq: string;
   material: string;
   size: string;
-  image?: string;
+  image: string;
+  imageAlt: string;
 }
 
 export interface ConsultationDraft {

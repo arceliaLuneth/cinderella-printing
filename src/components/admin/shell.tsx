@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -61,12 +61,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const { logout } = useAdminAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const dateLabel = new Intl.DateTimeFormat("id-ID", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date());
+  const [dateLabel, setDateLabel] = useState("");
+
+  useEffect(() => {
+    const formatter = new Intl.DateTimeFormat("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "Asia/Jakarta",
+    });
+    setDateLabel(formatter.format(new Date()));
+  }, []);
 
   function handleLogout() {
     logout();
@@ -154,7 +160,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="admin-topbar-right">
-            <span className="admin-topbar-date">{dateLabel}</span>
+            <span className="admin-topbar-date">{dateLabel || "—"}</span>
             <Link href="/" className="admin-btn admin-btn--ghost admin-btn--sm" target="_blank">
               Lihat situs
             </Link>

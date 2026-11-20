@@ -42,3 +42,8 @@ next-env.d.ts
 
 .cinderella-backup-*/
 .env.local
+
+.cinderella-safety-backup-*/
+
+# Local safety backups created by the hydration repair script
+.cinderella-hydration-backup-*/

@@ -1,98 +1,126 @@
+import Image from "next/image";
 import Link from "next/link";
+import { ArrowUpRight, Layers3, MessageCircle, PackageCheck } from "lucide-react";
 import { CtaBand, WhatsAppLink } from "@/components/site";
 import { CategoryGrid, ProductGrid } from "@/components/interactions";
+import { products } from "@/lib/site-data";
 
-const steps = [
-  ["01", "Konsultasi kebutuhan", "Sampaikan jenis produk, fungsi kemasan, dan perkiraan jumlah yang dibutuhkan."],
-  ["02", "Pembahasan spesifikasi dan penawaran", "Ukuran, bahan, desain, dan jumlah diperjelas sebagai dasar penawaran harga."],
-  ["03", "Persetujuan desain dan pesanan", "Tinjau detail dan desain. Proses dilanjutkan setelah rincian pesanan disepakati."],
-  ["04", "Produksi dan pemeriksaan", "Pengerjaan mengikuti spesifikasi yang disetujui dan melalui pemeriksaan sebelum pengiriman."],
-  ["05", "Pengiriman", "Metode dan jadwal pengiriman dibahas sesuai detail pesanan dan lokasi tujuan."],
+const processSteps = [
+  ["01", "Konsultasi", "Ceritakan produk, fungsi kemasan, dan perkiraan jumlah yang dibutuhkan."],
+  ["02", "Penawaran harga", "Ukuran, bahan, desain, dan jumlah dibahas sebagai dasar penawaran."],
+  ["03", "Persetujuan desain", "Tinjau dan setujui desain serta rincian sebelum pengerjaan dimulai."],
+  ["04", "Pra-produksi & produksi", "Persiapan dan proses produksi mengikuti kesepakatan pesanan."],
+  ["05", "Quality control", "Hasil produksi diperiksa sebelum disiapkan untuk pengiriman."],
+  ["06", "Pengiriman", "Metode dan jadwal dibahas sesuai jumlah serta lokasi tujuan."],
 ];
 
 export default function HomePage() {
+  const heroProduct = products[1];
+
   return (
     <>
-      <section className="container hero">
+      <section className="container hero hero-editorial">
         <div className="hero-copy">
-          <p className="eyebrow">CINDERELLA PRINTING · CETAK &amp; KEMASAN</p>
-          <h1>Temukan kemasan yang sesuai dengan kebutuhan produk Anda.</h1>
+          <p className="eyebrow">CINDERELLA PRINTING · CUSTOM PRINTING &amp; PACKAGING</p>
+          <h1 className="hero-title" aria-label="Cetak dan kemasan untuk kebutuhan bisnis Anda.">
+            <span className="motion-word-wrap"><span className="motion-word">Cetak dan kemasan</span></span>
+            <span className="motion-word-wrap"><span className="motion-word">untuk kebutuhan</span></span>
+            <span className="motion-word-wrap hero-title__accent"><span className="motion-word">bisnis Anda.</span></span>
+          </h1>
           <p className="lead">
-            Jelajahi kategori cetak dan kemasan, lihat referensi produk, lalu
-            diskusikan jumlah, ukuran, bahan, dan desain bersama Cinderella Printing
-            sebelum penawaran disusun.
+            Jelajahi hasil produksi, temukan kategori yang sesuai, lalu diskusikan
+            ukuran, bahan, desain, dan jumlah bersama Cinderella Printing sebelum penawaran disusun.
           </p>
           <div className="button-row">
-            <Link href="/produk" className="button button-dark">Lihat Katalog Produk →</Link>
-            <WhatsAppLink label="Tanya via WhatsApp" />
+            <Link href="/produk" className="button button-dark">Jelajahi Katalog <ArrowUpRight size={16} /></Link>
+            <WhatsAppLink label="Konsultasi via WhatsApp" />
           </div>
-          <p className="helper">Belum tahu ukuran atau bahan? Tidak masalah. Mulai dari jenis produk atau kebutuhan Anda.</p>
+          <p className="helper">Belum memiliki desain atau ukuran? Anda tetap dapat memulai dari kebutuhan produk.</p>
         </div>
-        <div className="hero-visual" role="img" aria-label="Area foto contoh produk dan kemasan Cinderella Printing">
-          <span>Foto produk dan kemasan akan ditambahkan</span>
-        </div>
+        <Link href={`/produk/${heroProduct.slug}`} className="hero-visual hero-visual--photo" aria-label={`Lihat ${heroProduct.name}`}>
+          <Image
+            src={heroProduct.image}
+            alt={heroProduct.imageAlt}
+            fill
+            priority
+            sizes="(max-width: 760px) 92vw, 48vw"
+            className="hero-visual__image"
+          />
+          <span className="hero-photo-caption">
+            <span>HASIL PRODUKSI</span>
+            <strong>{heroProduct.name}</strong>
+          </span>
+        </Link>
       </section>
 
-      <section className="section-soft">
-        <div className="container">
-          <div className="section-heading">
-            <div>
-              <h2>Mulai dari kebutuhan Anda</h2>
-              <p>Website ini membantu Anda memahami pilihan awal sebelum berdiskusi mengenai spesifikasi dan harga.</p>
-            </div>
-          </div>
-          <div className="info-grid three">
-            <article className="info-card"><h3>1. Pilih kategori</h3><p>Mulai dari jenis kemasan atau produk yang paling mendekati kebutuhan Anda.</p></article>
-            <article className="info-card"><h3>2. Siapkan informasi</h3><p>Isi perkiraan jumlah, ukuran, bahan, atau lampirkan referensi jika sudah tersedia.</p></article>
-            <article className="info-card"><h3>3. Lanjutkan konsultasi</h3><p>Gunakan ringkasan sebagai bahan diskusi untuk memperjelas spesifikasi dan penawaran.</p></article>
-          </div>
+      <section className="trust-strip" data-motion="reveal">
+        <div className="container trust-strip__grid">
+          <div><PackageCheck size={20} /><span><strong>Custom printing</strong><small>Desain dan ukuran dibahas sesuai kebutuhan</small></span></div>
+          <div><Layers3 size={20} /><span><strong>Pilihan bahan</strong><small>Referensi Ivory, Duplex, dan Kraft</small></span></div>
+          <div><MessageCircle size={20} /><span><strong>Konsultasi packaging</strong><small>Mulai dari informasi yang sudah diketahui</small></span></div>
         </div>
       </section>
 
       <section className="section container">
-        <div className="section-heading">
+        <div className="section-heading" data-motion="reveal">
           <div>
-            <h2>Jelajahi kategori produk</h2>
-            <p>Pilih kategori untuk melihat referensi awal. Ketersediaan dan detail produk dikonfirmasi saat konsultasi.</p>
+            <p className="eyebrow">JELAJAHI LAYANAN</p>
+            <h2>Kebutuhan cetak dalam berbagai kategori.</h2>
+            <p>Pilih kategori yang paling mendekati tujuan bisnis Anda. Detail produk dan ketersediaan dibahas saat konsultasi.</p>
           </div>
-          <Link href="/produk" className="button button-outline">Semua Kategori →</Link>
+          <Link href="/produk" className="button button-outline">Semua Kategori <ArrowUpRight size={15} /></Link>
         </div>
         <CategoryGrid />
-        <div className="center-action"><Link href="/cari-produk" className="text-link">Belum yakin memilih kategori? Bantu saya memilih →</Link></div>
+        <div className="center-action"><Link href="/cari-produk" className="text-link">Belum yakin memilih? Gunakan panduan produk →</Link></div>
       </section>
 
       <section className="section-soft">
         <div className="container">
-          <div className="section-heading">
+          <div className="section-heading" data-motion="reveal">
             <div>
-              <h2>Inspirasi produk</h2>
-              <p>Gunakan referensi kategori untuk menjelaskan bentuk dan kebutuhan produk yang Anda inginkan.</p>
+              <p className="eyebrow">DOKUMENTASI PRODUK</p>
+              <h2>Contoh hasil produksi.</h2>
+              <p>Foto produk asli membantu Anda melihat contoh bentuk dan tampilan hasil cetak.</p>
             </div>
-            <Link href="/portofolio" className="button button-outline">Lihat Inspirasi →</Link>
+            <Link href="/portofolio" className="button button-outline">Lihat Semua Hasil <ArrowUpRight size={15} /></Link>
           </div>
           <ProductGrid limit={3} />
         </div>
       </section>
 
       <section className="section container">
-        <div className="section-heading">
+        <div className="section-heading" data-motion="reveal">
           <div>
-            <h2>Bagaimana prosesnya?</h2>
-            <p>Alur umum dari konsultasi hingga pengiriman. Rincian dan ketentuan setiap pesanan dikonfirmasi bersama pihak usaha.</p>
+            <p className="eyebrow">ALUR LAYANAN</p>
+            <h2>Dari konsultasi sampai pengiriman.</h2>
+            <p>Rangkaian berikut merupakan gambaran umum. Rincian dan ketentuan dikonfirmasi untuk setiap pesanan.</p>
           </div>
+          <Link href="/tentang#alur-pemesanan" className="text-link">Pelajari alur lengkap →</Link>
         </div>
-        <div className="info-grid three">
-          {steps.map(([number, title, text]) => (
-            <article className="info-card" key={number}>
-              <small>{number} / TAHAP</small><h3>{title}</h3><p>{text}</p>
+        <div className="home-process-grid" data-motion-group>
+          {processSteps.map(([number, title, text]) => (
+            <article className="home-process-card" key={number} data-motion-item>
+              <span>{number}</span><h3>{title}</h3><p>{text}</p>
             </article>
           ))}
         </div>
+        <p className="notice">Untuk kebutuhan berulang, opsi pembagian pengiriman dan sistem re-stock dapat dibahas sesuai jenis produk dan kesepakatan.</p>
       </section>
-      <CtaBand
-        title="Punya kebutuhan cetak atau kemasan?"
-        text="Pilih kategori, siapkan informasi awal, lalu lanjutkan konsultasi untuk membahas spesifikasi dan penawaran."
-      />
+
+      <section className="section-soft home-consult-band">
+        <div className="container home-consult-inner" data-motion="reveal">
+          <div>
+            <p className="eyebrow">MULAI DARI KEBUTUHAN ANDA</p>
+            <h2>Masih mencari bentuk kemasan yang tepat?</h2>
+            <p>Jawab dua langkah singkat untuk membantu mengarahkan konsultasi. Tidak perlu mengetahui semua spesifikasi sejak awal.</p>
+          </div>
+          <div className="button-row">
+            <Link href="/cari-produk" className="button button-dark">Bantu Saya Memilih →</Link>
+            <WhatsAppLink label="Tanya langsung" />
+          </div>
+        </div>
+      </section>
+      <CtaBand title="Punya ide untuk produk berikutnya?" text="Sampaikan kebutuhan awal Anda. Cinderella Printing akan membantu membahas pilihan produk dan spesifikasi sebelum penawaran disusun." />
     </>
   );
 }
