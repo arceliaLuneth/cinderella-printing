@@ -50,16 +50,16 @@ export const products: Product[] = [
   {
     id: "work-002",
     slug: "kemasan-fried-chicken-neko-gurintik",
-    name: "Kemasan Fried Chicken — Neko Gurintik",
+    name: "",
     category: "Packaging",
     description:
-      "Dokumentasi box ayam goreng dengan desain dominan kuning dan elemen grafis berwarna.",
+      "Dokumentasi box kemasan makanan dengan desain dominan kuning dan elemen grafis berwarna.",
     moq: "Dikonfirmasi saat konsultasi",
     material: "Dikonfirmasi sesuai kebutuhan produk",
     size: "Dapat dibahas untuk kebutuhan custom",
     image: "/images/portfolio/neko-gurintik-fried-chicken.webp",
     imageAlt:
-      "Foto box fried chicken kuning dengan desain Neko Gurintik.",
+      "Foto contoh box kemasan makanan berwarna kuning dengan elemen grafis cetak.",
   },
   {
     id: "work-003",

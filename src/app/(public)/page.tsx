@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Layers3, MessageCircle, PackageCheck } from "lucide-react";
-import { CtaBand, WhatsAppLink } from "@/components/site";
+import { WhatsAppLink } from "@/components/site";
 import { CategoryGrid, ProductGrid } from "@/components/interactions";
 import { products } from "@/lib/site-data";
 
@@ -120,7 +120,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <CtaBand title="Punya ide untuk produk berikutnya?" text="Sampaikan kebutuhan awal Anda. Cinderella Printing akan membantu membahas pilihan produk dan spesifikasi sebelum penawaran disusun." />
     </>
   );
 }

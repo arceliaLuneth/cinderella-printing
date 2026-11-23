@@ -8,7 +8,7 @@ import {
   INSTAGRAM_URL,
   WHATSAPP_NUMBER,
 } from "@/lib/site-data";
-import { CtaBand, PageIntro, WhatsAppLink } from "@/components/site";
+import { PageIntro, WhatsAppLink } from "@/components/site";
 import { FaqList } from "@/components/interactions";
 
 export default function FaqContactPage() {
@@ -67,7 +67,6 @@ export default function FaqContactPage() {
           </div>
         </div>
       </section>
-      <CtaBand title="Belum menemukan jawaban?" text="Sampaikan kebutuhan atau pertanyaan Anda langsung melalui WhatsApp." />
     </>
   );
 }

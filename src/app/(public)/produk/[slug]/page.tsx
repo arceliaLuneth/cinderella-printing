@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CtaBand, WhatsAppLink } from "@/components/site";
+import { WhatsAppLink } from "@/components/site";
 import { products } from "@/lib/site-data";
 
 export function generateStaticParams() {
@@ -56,7 +56,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       <section className="section container">
         <Link href="/produk" className="text-link">← Kembali ke katalog produk</Link>
       </section>
-      <CtaBand />
     </>
   );
 }

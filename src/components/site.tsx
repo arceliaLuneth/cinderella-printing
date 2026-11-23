@@ -37,20 +37,23 @@ export function WhatsAppLink({
 
 export function Header() {
   return (
-    <header className="site-header">
-      <div className="container header-inner">
-        <Link href="/" className="brand" aria-label="Cinderella Printing — Beranda">
-          <span>Cinderella Printing</span>
-          <small>CUSTOM PRINTING &amp; PACKAGING</small>
-        </Link>
-        <nav className="main-nav" aria-label="Navigasi utama">
-          {nav.map(([label, href]) => (
-            <Link key={href} href={href}>{label}</Link>
-          ))}
-        </nav>
-        <WhatsAppLink label="Konsultasi ↗" className="button button-dark header-cta" />
-      </div>
-    </header>
+    <>
+      <a className="skip-link" href="#main-content">Lewati ke konten utama</a>
+      <header className="site-header">
+        <div className="container header-inner">
+          <Link href="/" className="brand" aria-label="Cinderella Printing — Beranda">
+            <span>Cinderella Printing</span>
+            <small>CUSTOM PRINTING &amp; PACKAGING</small>
+          </Link>
+          <nav className="main-nav" aria-label="Navigasi utama">
+            {nav.map(([label, href]) => (
+              <Link key={href} href={href}>{label}</Link>
+            ))}
+          </nav>
+          <WhatsAppLink label="Konsultasi ↗" className="button button-dark header-cta" />
+        </div>
+      </header>
+    </>
   );
 }
 
@@ -91,7 +94,6 @@ export function Footer() {
       </div>
       <div className="container footer-bottom">
         <span>© 2026 Cinderella Printing · Informasi Produk &amp; Konsultasi</span>
-        <span>Pesanan dikonfirmasi setelah konsultasi dan persetujuan dengan pihak usaha.</span>
       </div>
     </footer>
   );

@@ -61,7 +61,7 @@ function ProductImage({
   priority?: boolean;
 }) {
   return (
-    <div className={`product-image ${className}`} data-motion-image>
+    <div className={`product-image ${className}`}>
       <Image
         src={src}
         alt={alt}
@@ -77,9 +77,9 @@ function ProductImage({
 export function ProductGrid({ limit }: { limit?: number }) {
   const shown = limit ? products.slice(0, limit) : products;
   return (
-    <div className="product-grid" data-motion-group>
+    <div className="product-grid">
       {shown.map((product) => (
-        <article className="product-card" key={product.id} data-motion-item>
+        <article className="product-card" key={product.id}>
           <Link href={`/produk/${product.slug}`} className="product-card__image-link" aria-label={`Lihat ${product.name}`}>
             <ProductImage src={product.image} alt={product.imageAlt} />
           </Link>
@@ -97,14 +97,13 @@ export function ProductGrid({ limit }: { limit?: number }) {
 
 export function CategoryGrid() {
   return (
-    <div className="category-grid" data-motion-group>
-      {categories.map((category, index) => {
+    <div className="category-grid">
+      {categories.map((category) => {
         const Icon = categoryIcons[category];
         return (
-          <article className="category-card category-card--icon" key={category} data-motion-item>
+          <article className="category-card category-card--icon" key={category}>
             <div className="category-icon" aria-hidden="true"><Icon size={25} strokeWidth={1.7} /></div>
             <div className="card-body">
-              <p className="card-kicker">{String(index + 1).padStart(2, "0")} / KATEGORI</p>
               <h3>{category}</h3>
               <p>{categoryDescriptions[category]}</p>
               <Link href={`/produk?kategori=${encodeURIComponent(category)}`} className="text-link">
@@ -183,9 +182,9 @@ export function CatalogBrowser() {
           )}
         </div>
         {filtered.length > 0 ? (
-          <div className="product-grid catalog-products" data-motion-group>
+          <div className="product-grid catalog-products">
             {filtered.map((product) => (
-              <article className="product-card" key={product.id} data-motion-item>
+              <article className="product-card" key={product.id}>
                 <Link href={`/produk/${product.slug}`} className="product-card__image-link" aria-label={`Lihat ${product.name}`}>
                   <ProductImage src={product.image} alt={product.imageAlt} />
                 </Link>
@@ -311,7 +310,7 @@ export function GuidedDiscovery() {
       </div>
 
       {step === 1 ? (
-        <div className="discovery-panel" key="step-1" data-motion-step>
+        <div className="discovery-panel" key="step-1">
           <p className="eyebrow">LANGKAH 01 / PILIH KEBUTUHAN</p>
           <h2 id="discovery-heading">Apa yang ingin Anda buat?</h2>
           <p className="section-desc">Pilih kategori yang paling mendekati kebutuhan. Pilihan ini hanya membantu mengarahkan konsultasi.</p>
@@ -339,7 +338,7 @@ export function GuidedDiscovery() {
           </div>
         </div>
       ) : (
-        <div className="discovery-panel" key="step-2" data-motion-step>
+        <div className="discovery-panel" key="step-2">
           <p className="eyebrow">LANGKAH 02 / KESIAPAN ANDA</p>
           <h2 id="discovery-heading">Apa yang sudah Anda siapkan?</h2>
           <p className="section-desc">Tidak ada jawaban yang salah. Pilih kondisi yang paling sesuai saat ini.</p>
@@ -428,7 +427,7 @@ export function ConsultationForm() {
 
   return (
     <form className="consultation-form" onSubmit={submit}>
-      <section className="form-section" aria-labelledby="form-product-heading" data-motion="reveal">
+      <section className="form-section" aria-labelledby="form-product-heading">
         <h2 id="form-product-heading">1. Kebutuhan produk</h2>
         <p className="muted">Isi informasi yang sudah diketahui. Bagian yang belum pasti boleh dikosongkan.</p>
         <label className="field-label" htmlFor="consult-product">Produk atau kategori</label>
@@ -457,7 +456,7 @@ export function ConsultationForm() {
         <p className="helper">Informasi ini hanya bahan diskusi awal, bukan harga atau penawaran yang mengikat.</p>
       </section>
 
-      <section className="form-section" aria-labelledby="form-reference-heading" data-motion="reveal">
+      <section className="form-section" aria-labelledby="form-reference-heading">
         <h2 id="form-reference-heading">2. Desain atau referensi</h2>
         <p className="muted">Boleh dilewati apabila belum memiliki gambar atau desain.</p>
         <label className="field-label" htmlFor="consult-reference">Pilih gambar atau PDF referensi</label>
@@ -475,7 +474,7 @@ export function ConsultationForm() {
         </label>
       </section>
 
-      <section className="form-section" aria-labelledby="form-contact-heading" data-motion="reveal">
+      <section className="form-section" aria-labelledby="form-contact-heading">
         <h2 id="form-contact-heading">3. Informasi kontak</h2>
         <p className="muted">Informasi ini dapat dimasukkan ke dalam pesan konsultasi.</p>
         <div className="form-grid">
@@ -640,9 +639,9 @@ export function FaqList() {
   ];
 
   return (
-    <div className="faq-list" data-motion-group>
+    <div className="faq-list">
       {faqs.map(([question, answer]) => (
-        <details key={question} data-motion-item>
+        <details key={question}>
           <summary>{question}</summary>
           <p>{answer}</p>
         </details>
