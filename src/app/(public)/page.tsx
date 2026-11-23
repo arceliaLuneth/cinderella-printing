@@ -53,13 +53,7 @@ export default function HomePage() {
         </Link>
       </section>
 
-      <section className="trust-strip" data-motion="reveal">
-        <div className="container trust-strip__grid">
-          <div><PackageCheck size={20} /><span><strong>Custom printing</strong><small>Desain dan ukuran dibahas sesuai kebutuhan</small></span></div>
-          <div><Layers3 size={20} /><span><strong>Pilihan bahan</strong><small>Referensi Ivory, Duplex, dan Kraft</small></span></div>
-          <div><MessageCircle size={20} /><span><strong>Konsultasi packaging</strong><small>Mulai dari informasi yang sudah diketahui</small></span></div>
-        </div>
-      </section>
+  
 
       <section className="section container">
         <div className="section-heading" data-motion="reveal">
