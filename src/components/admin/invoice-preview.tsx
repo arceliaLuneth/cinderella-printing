@@ -1,4 +1,4 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import type { Invoice } from "@/types/admin";
 import {
   calculateInvoiceTotals,
@@ -7,7 +7,7 @@ import {
   formatNumber,
   invoiceStatusMeta,
 } from "@/lib/admin/format";
-import { COMPANY_PROFILE } from "@/lib/admin/company";
+import { lineTotal } from "@/lib/admin/format";
 
 export function InvoicePreview({
   invoice,
@@ -17,6 +17,8 @@ export function InvoicePreview({
   orderNumber?: string;
 }) {
   const totals = calculateInvoiceTotals(invoice);
+  const paidAmount = invoice.paidAmount;
+  const remaining = Math.max(0, totals.total - paidAmount);
   const status = invoiceStatusMeta[invoice.status];
 
   return (
@@ -32,23 +34,22 @@ export function InvoicePreview({
             priority
           />
           <div>
-            <strong>{COMPANY_PROFILE.name}</strong>
-            <small>{COMPANY_PROFILE.tagline}</small>
+            <strong>{invoice.business.business_name}</strong>
           </div>
         </div>
         <div className="invoice-title">
           <h1>INVOICE</h1>
           <p>{invoice.number}</p>
+          {invoice.revision > 1 && <p>Revisi {invoice.revision} · {formatDate(invoice.revisedAt ?? "")}</p>}
           <span className={`invoice-status invoice-status--${invoice.status}`}>{status.label}</span>
         </div>
       </header>
 
       <div className="invoice-company">
-        <p>{COMPANY_PROFILE.address}</p>
+        <p>{invoice.business.address}</p>
         <p>
-          {COMPANY_PROFILE.phone} · {COMPANY_PROFILE.email}
+          {[invoice.business.phone, invoice.business.email].filter(Boolean).join(" · ")}
         </p>
-        <p>{COMPANY_PROFILE.website}</p>
       </div>
 
       <div className="invoice-parties">
@@ -67,7 +68,7 @@ export function InvoicePreview({
               <dd>{formatDate(invoice.issueDate)}</dd>
             </div>
             <div>
-              <dt>Jatuh tempo</dt>
+              <dt>Target selesai pesanan</dt>
               <dd>{formatDate(invoice.dueDate)}</dd>
             </div>
             {orderNumber && (
@@ -84,6 +85,7 @@ export function InvoicePreview({
         </section>
       </div>
 
+      <div className="invoice-table-scroll" role="region" aria-label="Rincian produk invoice" tabIndex={0}>
       <table className="invoice-table">
         <thead>
           <tr>
@@ -102,19 +104,26 @@ export function InvoicePreview({
         <tbody>
           {invoice.items.map((item) => (
             <tr key={item.id}>
-              <td>{item.name}</td>
-              <td className="num">{formatNumber(item.quantity)}</td>
+              <td>
+                <strong>{item.name}</strong>
+                <div>Ukuran {item.specifications.size}</div>
+                <div>Bahan {item.specifications.material}</div>
+                {item.specifications.finishing && <div>Finishing {item.specifications.finishing}</div>}
+                {item.specifications.notes && <div>Catatan {item.specifications.notes}</div>}
+              </td>
+              <td className="num">{formatNumber(item.quantity)} {item.unit}</td>
               <td className="num">{formatCurrency(item.unitPrice)}</td>
-              <td className="num">{formatCurrency(item.quantity * item.unitPrice)}</td>
+              <td className="num">{formatCurrency(lineTotal(item))}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
 
       <div className="invoice-bottom">
         <section className="invoice-notes">
           <h2>Catatan</h2>
-          <p>{invoice.notes || COMPANY_PROFILE.paymentNote}</p>
+          <p>{invoice.notes || "—"}</p>
         </section>
         <dl className="invoice-totals">
           <div>
@@ -125,21 +134,44 @@ export function InvoicePreview({
             <dt>Diskon</dt>
             <dd>-{formatCurrency(totals.discount)}</dd>
           </div>
+          {totals.additionalCost > 0 && <div><dt>Biaya tambahan</dt><dd>{formatCurrency(totals.additionalCost)}</dd></div>}
           <div className="invoice-grand-total">
             <dt>Total</dt>
             <dd>{formatCurrency(totals.total)}</dd>
           </div>
+          <div>
+            <dt>Pembayaran diterima</dt>
+            <dd>{formatCurrency(paidAmount)}</dd>
+          </div>
+          <div className="invoice-grand-total">
+            <dt>Sisa tagihan</dt>
+            <dd>{formatCurrency(remaining)}</dd>
+          </div>
         </dl>
       </div>
+
+      {invoice.payments.length > 0 && (
+        <section className="invoice-payment-history">
+          <h2>Riwayat pembayaran</h2>
+          <ul>
+            {invoice.payments.map((payment) => (
+              <li key={payment.id}>
+                <span>{formatDate(payment.paidAt)} · {payment.method === "transfer" ? "Transfer" : "Tunai"}</span>
+                <strong>{formatCurrency(payment.amount)}</strong>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <footer className="invoice-foot">
         <div>
           <h2>Pembayaran</h2>
-          <p>{COMPANY_PROFILE.paymentNote}</p>
+          <p>Hubungi admin untuk konfirmasi pembayaran.</p>
         </div>
         <div className="invoice-sign">
           <span>Hormat kami,</span>
-          <strong>{COMPANY_PROFILE.name}</strong>
+          <strong>{invoice.business.business_name}</strong>
         </div>
       </footer>
     </article>

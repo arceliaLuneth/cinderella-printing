@@ -3,18 +3,31 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAdminAuth } from "@/components/admin/auth-provider";
-import { useAdminData } from "@/components/admin/data-provider";
+import { AdminDataProvider, useAdminData } from "@/components/admin/data-provider";
 import { AdminShell } from "@/components/admin/shell";
 import { LoadingPanel } from "@/components/admin/ui";
-import { useClientReady } from "@/components/admin/use-client-ready";
+
+function AdminContent({ children }: { children: React.ReactNode }) {
+  const { hydrated, loadError, retry } = useAdminData();
+  if (loadError) return (
+    <div className="admin-auth-loading">
+      <div role="alert">
+        <p>{loadError}</p>
+        <button type="button" className="admin-btn admin-btn--primary" onClick={retry}>Coba lagi</button>
+      </div>
+    </div>
+  );
+  if (!hydrated) return (
+    <div className="admin-auth-loading"><LoadingPanel label="Memuat data admin…" /></div>
+  );
+  return <AdminShell>{children}</AdminShell>;
+}
 
 export function AdminFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { status } = useAdminAuth();
-  const { hydrated } = useAdminData();
   const isLogin = pathname === "/admin/login";
-  const mounted = useClientReady();
 
   useEffect(() => {
     if (status === "loading") return;
@@ -26,19 +39,13 @@ export function AdminFrame({ children }: { children: React.ReactNode }) {
 
     if (isLogin && status === "authenticated") {
       const next = new URLSearchParams(window.location.search).get("next");
-      router.replace(next?.startsWith("/admin") ? next : "/admin");
+      router.replace(next && (next === "/admin" || next.startsWith("/admin/")) && !next.startsWith("/admin/login") ? next : "/admin");
     }
   }, [isLogin, pathname, router, status]);
 
-  if (isLogin) {
-    return mounted ? <>{children}</> : (
-      <div className="admin-auth-loading">
-        <LoadingPanel label="Menyiapkan dashboard…" />
-      </div>
-    );
-  }
+  if (isLogin && status === "unauthenticated") return <>{children}</>;
 
-  if (!mounted || status !== "authenticated" || !hydrated) {
+  if (isLogin || status !== "authenticated") {
     return (
       <div className="admin-auth-loading">
         <LoadingPanel label="Menyiapkan dashboard…" />
@@ -46,5 +53,5 @@ export function AdminFrame({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <AdminShell>{children}</AdminShell>;
+  return <AdminDataProvider><AdminContent>{children}</AdminContent></AdminDataProvider>;
 }

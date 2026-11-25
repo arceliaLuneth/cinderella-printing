@@ -41,6 +41,25 @@ The website serves as an information and consultation platform. It does not incl
 - **React** — Library for building user interfaces.
 - **TypeScript** — Provides static typing and improved code reliability.
 - **Tailwind CSS** — Utility-first CSS framework for styling.
+- **PostgreSQL on Supabase** — Central database for the catalog, customers, orders, payments, and invoices.
+- **Supabase Auth and Storage** — Admin authentication and catalog image storage.
+
+## Backend Setup (Windows)
+
+The API runs in this Next.js project at `/api/v1`. Copy `.env.example` to `.env`, then fill in `DATABASE_PASSWORD` from your Supabase project and the server-only secret key. The session-pooler host, project URL, and publishable key are already filled in. Keep `.env` on this device and never add it to Git.
+
+```powershell
+npm.cmd ci
+Copy-Item .env.example .env
+# Fill in .env locally, then:
+npm.cmd run db:migrate
+npm.cmd run setup:check
+npm.cmd run dev
+```
+
+The API is available at `http://localhost:3000/api/v1`; its generated OpenAPI document is at `http://localhost:3000/api/v1/openapi.json`. Before the first admin login, create the admin account with `npm.cmd run admin:create -- --email EMAIL --name "Admin Cinderella" --role owner`. The CLI prompts for its password without showing the input.
+
+The public catalog reads active products and categories from Supabase. Manage catalog entries and images in the admin panel. See [docs/BACKEND-SETUP.md](docs/BACKEND-SETUP.md) for setup, catalog publishing, and the order and invoice workflow.
 
 ## Getting Started
 
@@ -99,7 +118,7 @@ cinderella-printing/
 
 **Under Development**
 
-The project is currently under active development. Features, interface components, responsive layouts, and backend integration are being implemented progressively.
+The public site and admin interface are under active development. The PostgreSQL/Supabase API and its SQL migration are included in this repository.
 
 ## Project Scope
 

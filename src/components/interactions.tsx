@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+/* eslint-disable react-hooks/set-state-in-effect -- Browser-only query/sessionStorage values are hydrated after the server render. */
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import type { ConsultationDraft, ProductCategory } from "@/types";
-import {
-  categories,
-  categoryDescriptions,
-  portfolioItems,
-  products,
-  WHATSAPP_NUMBER,
-} from "@/lib/site-data";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { ConsultationDraft } from "@/types";
+import type { CatalogCategory, CatalogProduct } from "@/lib/public-catalog";
+import { WHATSAPP_NUMBER } from "@/lib/site-data";
+import { ProductGrid } from "./catalog-grid";
 
 const STORAGE_KEY = "cinderella-consultation-v2";
 const LEGACY_STORAGE_KEY = "cinderella-consultation";
@@ -27,228 +25,86 @@ const emptyDraft: ConsultationDraft = {
   notes: "",
 };
 
-function PlaceholderImage({
-  label,
-  className = "",
-}: {
-  label: string;
-  className?: string;
-}) {
-  return (
-    <div className={`image-placeholder ${className}`} role="img" aria-label={label}>
-      <span>{label}</span>
-    </div>
-  );
-}
-
-export function ProductGrid({ limit }: { limit?: number }) {
-  const shown = limit ? products.slice(0, limit) : products;
-  return (
-    <div className="product-grid">
-      {shown.map((product) => (
-        <article className="product-card" key={product.id}>
-          <PlaceholderImage label={`Foto ${product.category} akan ditambahkan`} />
-          <div className="card-body">
-            <p className="card-kicker">{product.category}</p>
-            <h3>{product.name}</h3>
-            <p>{product.description}</p>
-            <p className="product-meta">Jumlah minimum, bahan, ukuran, dan harga dibahas saat konsultasi.</p>
-            <Link href={`/produk/${product.slug}`} className="text-link">Lihat detail kategori →</Link>
-          </div>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-export function CategoryGrid() {
-  return (
-    <div className="category-grid">
-      {categories.map((category) => (
-        <article className="category-card" key={category}>
-          <PlaceholderImage label={`Foto contoh ${category} akan ditambahkan`} />
-          <div className="card-body">
-            <h3>{category}</h3>
-            <p>{categoryDescriptions[category]}</p>
-            <Link href={`/produk?kategori=${encodeURIComponent(category)}`} className="text-link">
-              Lihat referensi {category.toLowerCase()} →
-            </Link>
-          </div>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-export function CatalogBrowser() {
-  const [category, setCategory] = useState("Semua Produk");
+export function CatalogBrowser({ categories, products }: { categories: CatalogCategory[]; products: CatalogProduct[] }) {
   const [query, setQuery] = useState("");
+  const categoryParam = useSearchParams().get("kategori") ?? "";
+  const [selection, setSelection] = useState<{ parameter: string; id: string }>();
+  const preferredCategory = selection?.parameter === categoryParam
+    ? selection.id
+    : categories.find((item) => item.slug === categoryParam || item.name === categoryParam)?.id;
+  const category = categories.find((item) => item.id === preferredCategory)?.id ?? "";
 
-  useEffect(() => {
-    const selected = new URLSearchParams(window.location.search).get("kategori");
-    if (selected && categories.includes(selected as ProductCategory)) setCategory(selected);
-  }, []);
-
-  const filtered = useMemo(() => {
-    const normalized = query.trim().toLocaleLowerCase("id-ID");
-    return products.filter((item) => {
-      const categoryMatch = category === "Semua Produk" || item.category === category;
-      const textMatch = `${item.name} ${item.category} ${item.description}`
-        .toLocaleLowerCase("id-ID")
-        .includes(normalized);
-      return categoryMatch && textMatch;
-    });
-  }, [category, query]);
-
-  return (
-    <div className="catalog-layout">
-      <aside className="filter-panel" aria-label="Filter katalog produk">
-        <h2 className="filter-title">Kategori produk</h2>
-        <fieldset className="filter-options">
-          <legend className="sr-only">Pilih kategori produk</legend>
-          {["Semua Produk", ...categories].map((name) => (
-            <label className="filter-option" key={name}>
-              <input
-                type="radio"
-                name="product-category"
-                value={name}
-                checked={category === name}
-                onChange={() => setCategory(name)}
-              />
-              <span>{name}</span>
-            </label>
-          ))}
-        </fieldset>
-        <p className="muted small">Belum yakin kategori yang sesuai?</p>
-        <Link href="/cari-produk" className="button button-outline button-full">Bantu Saya Memilih</Link>
-      </aside>
-
-      <div className="catalog-results">
-        <label className="field-label" htmlFor="product-search">Cari produk atau kategori</label>
-        <input
-          id="product-search"
-          className="text-input"
-          type="search"
-          placeholder="Contoh: pouch, cup, kemasan makanan…"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          aria-describedby="catalog-result-count"
-        />
-        <div className="result-meta">
-          <p id="catalog-result-count" aria-live="polite" aria-atomic="true">
-            Menampilkan {filtered.length} dari {products.length} referensi · {category}
-          </p>
-          {(query || category !== "Semua Produk") && (
-            <button type="button" className="text-button" onClick={() => { setQuery(""); setCategory("Semua Produk"); }}>
-              Hapus filter
-            </button>
-          )}
-        </div>
-        {filtered.length > 0 ? (
-          <div className="product-grid catalog-products">
-            {filtered.map((product) => (
-              <article className="product-card" key={product.id}>
-                <PlaceholderImage label={`Foto ${product.category} akan ditambahkan`} />
-                <div className="card-body">
-                  <p className="card-kicker">{product.category}</p>
-                  <h3>{product.name}</h3>
-                  <p>{product.description}</p>
-                  <Link href={`/produk/${product.slug}`} className="text-link">Lihat detail →</Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state" role="status">
-            <h3>Referensi belum ditemukan</h3>
-            <p>Coba kata kunci lain atau tampilkan semua kategori.</p>
-            <button type="button" className="button button-outline" onClick={() => { setQuery(""); setCategory("Semua Produk"); }}>
-              Tampilkan semua referensi
-            </button>
-          </div>
-        )}
-        <p className="notice">
-          Katalog ini membantu memilih kategori awal. Ketersediaan produk, bahan,
-          ukuran, jumlah minimum, dan harga akan dikonfirmasi saat konsultasi.
-        </p>
-      </div>
-    </div>
+  const key = query.trim().toLocaleLowerCase("id-ID");
+  const filtered = products.filter((item) =>
+    (!category || item.category_id === category) &&
+    [item.name, item.description, item.category_name].some((value) => value.toLocaleLowerCase("id-ID").includes(key))
   );
-}
-
-export function PortfolioBrowser() {
-  const [category, setCategory] = useState("Semua");
-  const filtered = category === "Semua"
-    ? portfolioItems
-    : portfolioItems.filter((item) => item.category === category);
 
   return (
     <>
-      <div className="filter-chips" role="group" aria-label="Filter inspirasi produk">
-        {["Semua", ...categories].map((item) => (
-          <button
-            type="button"
-            key={item}
-            className={`chip ${category === item ? "active" : ""}`}
-            aria-pressed={category === item}
-            onClick={() => setCategory(item)}
-          >
-            {item}
-          </button>
-        ))}
+      <div className="form-grid">
+        <label className="field-label">
+          Cari produk
+          <input type="search" className="text-input" value={query} onChange={(event) => setQuery(event.target.value)} />
+        </label>
+        <label className="field-label">
+          Kategori
+          <select className="text-input" value={category} onChange={(event) => setSelection({ parameter: categoryParam, id: event.target.value })}>
+            <option value="">Semua kategori</option>
+            {categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </select>
+        </label>
       </div>
-      <p className="result-meta" aria-live="polite">Menampilkan {filtered.length} kategori referensi.</p>
-      <div className="product-grid portfolio-grid">
-        {filtered.map((item) => (
-          <article className="product-card" key={item.id}>
-            <PlaceholderImage label={`Foto referensi ${item.category} akan ditambahkan`} />
-            <div className="card-body">
-              <p className="card-kicker">Referensi kategori</p>
-              <h3>{item.title}</h3>
-              <p>{item.description}</p>
-              <Link href={`/konsultasi?referensi=${encodeURIComponent(item.title)}`} className="text-link">
-                Gunakan sebagai bahan konsultasi →
-              </Link>
-            </div>
-          </article>
-        ))}
-      </div>
+      <p className="result-meta" aria-live="polite">{filtered.length} produk</p>
+      <ProductGrid products={filtered} />
     </>
   );
 }
 
+let memoryDraft: ConsultationDraft | undefined;
+
 function getSavedDraft(): ConsultationDraft {
+  if (memoryDraft) return memoryDraft;
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(LEGACY_STORAGE_KEY);
     if (!raw) return emptyDraft;
-    return { ...emptyDraft, ...JSON.parse(raw) };
+    const data: unknown = JSON.parse(raw);
+    const draft = { ...emptyDraft };
+    if (data && typeof data === "object") {
+      for (const key of Object.keys(draft) as (keyof ConsultationDraft)[]) {
+        const value = (data as Record<string, unknown>)[key];
+        if (typeof value === "string") draft[key] = value;
+      }
+    }
+    return draft;
   } catch {
     return emptyDraft;
   }
 }
 
-export function ConsultationForm() {
+export function ConsultationForm({ categories, products }: { categories: CatalogCategory[]; products: CatalogProduct[] }) {
+  const router = useRouter();
   const [draft, setDraft] = useState<ConsultationDraft>(emptyDraft);
   const [ready, setReady] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = getSavedDraft();
     const params = new URLSearchParams(window.location.search);
     const productParam = params.get("produk") ?? params.get("kategori") ?? "";
     const referenceParam = params.get("referensi") ?? "";
-    const selectedProduct = products.find((item) => item.name === productParam);
-    const selectedCategory = categories.includes(productParam as ProductCategory)
-      ? productParam
-      : selectedProduct?.category ?? "";
+    const options = [...products, ...categories];
+    const selected = options.find((item) => item.slug === productParam || item.name === productParam);
+    const savedChoice = options.some((item) => item.name === saved.product) || saved.product === "Belum tahu" ? saved.product : "";
     setDraft({
       ...saved,
-      product: selectedCategory || saved.product,
+      product: selected?.name ?? savedChoice,
       notes: referenceParam
         ? `Referensi yang ingin dibahas: ${referenceParam}`
         : saved.notes,
     });
     setReady(true);
-  }, []);
+  }, [categories, products]);
 
   function update(field: keyof ConsultationDraft, value: string) {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -256,12 +112,13 @@ export function ConsultationForm() {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    memoryDraft = draft;
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
     } catch {
       // Keep the interaction usable; the following page explains the local-only behavior.
     }
-    window.location.assign("/konfirmasi");
+    router.push("/konfirmasi");
   }
 
   if (!ready) {
@@ -276,7 +133,8 @@ export function ConsultationForm() {
         <label className="field-label" htmlFor="consult-product">Produk atau kategori</label>
         <select id="consult-product" className="text-input" value={draft.product} onChange={(event) => update("product", event.target.value)}>
           <option value="">Pilih kategori atau belum tahu</option>
-          {categories.map((item) => <option key={item} value={item}>{item}</option>)}
+          <optgroup label="Produk">{products.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</optgroup>
+          <optgroup label="Kategori">{categories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</optgroup>
           <option value="Belum tahu">Belum tahu</option>
         </select>
         <div className="form-grid">
@@ -310,14 +168,14 @@ export function ConsultationForm() {
         <label className="field-label" htmlFor="consult-reference">Pilih gambar atau PDF referensi</label>
         <input
           id="consult-reference"
+          ref={fileInput}
           className="text-input file-input"
           type="file"
           accept="image/*,.pdf"
           onChange={(event) => update("referenceFileName", event.target.files?.[0]?.name ?? "")}
         />
         <p className="helper">
-          Untuk tahap frontend ini, file belum diunggah ke server. Setelah WhatsApp terbuka,
-          lampirkan file tersebut secara manual pada percakapan.
+          Lampirkan file di percakapan setelah WhatsApp terbuka.
         </p>
         {draft.referenceFileName && <p className="selected-file">File dipilih: {draft.referenceFileName}</p>}
         <label className="field-label" htmlFor="consult-notes">
@@ -344,7 +202,12 @@ export function ConsultationForm() {
 
       <div className="form-actions">
         <button className="button button-dark" type="submit">Tinjau Ringkasan →</button>
-        <button className="button button-quiet" type="button" onClick={() => { setDraft(emptyDraft); try { sessionStorage.removeItem(STORAGE_KEY); sessionStorage.removeItem(LEGACY_STORAGE_KEY); } catch {} }}>
+        <button className="button button-quiet" type="button" onClick={() => {
+          setDraft(emptyDraft);
+          memoryDraft = emptyDraft;
+          if (fileInput.current) fileInput.current.value = "";
+          try { sessionStorage.removeItem(STORAGE_KEY); sessionStorage.removeItem(LEGACY_STORAGE_KEY); } catch {}
+        }}>
           Kosongkan formulir
         </button>
       </div>

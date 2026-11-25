@@ -1,6 +1,7 @@
 ﻿"use client";
 
-import { useEffect, useId, type ReactNode } from "react";
+import { useLayoutEffect, useEffectEvent, useId, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { AlertTriangle, Search, X } from "lucide-react";
 import type { Tone } from "@/lib/admin/format";
 
@@ -115,10 +116,29 @@ export function Modal({
   size?: "sm" | "md" | "lg";
 }) {
   const titleId = useId();
+  const dialog = useRef<HTMLDivElement>(null);
+  const close = useEffectEvent(onClose);
+  const [previousFocus] = useState(() => document.activeElement);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    const root = document.querySelector<HTMLElement>(".admin-root");
+    const wasInert = root?.inert ?? false;
+    if (root) root.inert = true;
+    if (!dialog.current?.contains(document.activeElement)) dialog.current?.focus();
     function handleKey(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") close();
+      if (event.key !== "Tab" || !dialog.current) return;
+      const controls = Array.from(dialog.current.querySelectorAll<HTMLElement>(
+        'a[href],button,input,select,textarea,[tabindex]',
+      )).filter(el => el.tabIndex >= 0 && !el.matches(":disabled") && el.getClientRects().length);
+      const first = controls[0], last = controls.at(-1);
+      if (!first || (event.shiftKey && [dialog.current, first].includes(document.activeElement as HTMLElement))) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
     document.addEventListener("keydown", handleKey);
     const previousOverflow = document.body.style.overflow;
@@ -126,10 +146,12 @@ export function Modal({
     return () => {
       document.removeEventListener("keydown", handleKey);
       document.body.style.overflow = previousOverflow;
+      if (root) root.inert = wasInert;
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
     };
-  }, [onClose]);
+  }, [previousFocus]);
 
-  return (
+  return createPortal(
     <div
       className="admin-modal-overlay"
       onMouseDown={(event) => {
@@ -138,6 +160,8 @@ export function Modal({
     >
       <div
         className={`admin-modal admin-modal--${size}`}
+        ref={dialog}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -153,25 +177,27 @@ export function Modal({
         </div>
         <div className="admin-modal-body">{children}</div>
       </div>
-    </div>
+    </div>, document.body
   );
 }
 
 export function ConfirmDialog({
   title,
   message,
-  confirmLabel = "Hapus",
+  confirmLabel = "Konfirmasi",
+  pending = false,
   onConfirm,
   onCancel,
 }: {
   title: string;
   message: string;
   confirmLabel?: string;
+  pending?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
   return (
-    <Modal title={title} onClose={onCancel} size="sm">
+    <Modal title={title} onClose={() => { if (!pending) onCancel(); }} size="sm">
       <div className="admin-confirm">
         <span className="admin-confirm-icon" aria-hidden="true">
           <AlertTriangle size={22} />
@@ -179,11 +205,11 @@ export function ConfirmDialog({
         <p>{message}</p>
       </div>
       <div className="admin-form-actions">
-        <button type="button" className="admin-btn admin-btn--ghost" onClick={onCancel}>
+        <button type="button" className="admin-btn admin-btn--ghost" onClick={onCancel} disabled={pending}>
           Batal
         </button>
-        <button type="button" className="admin-btn admin-btn--danger" onClick={onConfirm}>
-          {confirmLabel}
+        <button type="button" className="admin-btn admin-btn--danger" onClick={onConfirm} disabled={pending}>
+          {pending ? "Menyimpan…" : confirmLabel}
         </button>
       </div>
     </Modal>

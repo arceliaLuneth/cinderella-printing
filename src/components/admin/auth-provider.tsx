@@ -1,79 +1,64 @@
-﻿"use client";
+"use client";
 
-import { createContext, useContext, useSyncExternalStore } from "react";
-import { DEMO_ADMIN_PASSWORD } from "@/lib/admin/company";
+import { createContext, useContext, useEffect, useState } from "react";
+import { ADMIN_SIGNED_OUT, adminRequest, sessionRequest } from "@/lib/admin/client";
+import { useToast } from "./toast";
 
-const SESSION_KEY = "cinderella-admin-session";
-const AUTH_EVENT = "cinderella-admin-auth";
-
-type AuthStatus = "loading" | "authenticated" | "unauthenticated";
-
-let memoryStatus: AuthStatus | null = null;
-
-function readStatus(): AuthStatus {
-  if (memoryStatus) return memoryStatus;
-  try {
-    return sessionStorage.getItem(SESSION_KEY) === "active" ? "authenticated" : "unauthenticated";
-  } catch {
-    return "unauthenticated";
-  }
-}
-
-function subscribe(callback: () => void) {
-  window.addEventListener(AUTH_EVENT, callback);
-  window.addEventListener("storage", callback);
-  return () => {
-    window.removeEventListener(AUTH_EVENT, callback);
-    window.removeEventListener("storage", callback);
-  };
-}
-
-function notifyChange() {
-  window.dispatchEvent(new Event(AUTH_EVENT));
-}
-
-interface AuthContextValue {
-  status: AuthStatus;
-  login: (password: string) => boolean;
-  logout: () => void;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
+type Status = "loading" | "authenticated" | "unauthenticated";
+const AuthContext = createContext<{
+  status: Status;
+  login: (identifier: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+} | null>(null);
 
 export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
-  const status = useSyncExternalStore<AuthStatus>(subscribe, readStatus, () => "loading");
+  const [status, setStatus] = useState<Status>("loading");
+  const { notify } = useToast();
 
-  const value: AuthContextValue = {
-    status,
-    login(password) {
-      if (password !== DEMO_ADMIN_PASSWORD) return false;
-      memoryStatus = "authenticated";
-      try {
-        sessionStorage.setItem(SESSION_KEY, "active");
-      } catch {
-        // The in-memory session keeps the demo usable when storage is blocked.
-      }
-      notifyChange();
-      return true;
-    },
-    logout() {
-      memoryStatus = "unauthenticated";
-      try {
-        sessionStorage.removeItem(SESSION_KEY);
-      } catch {
-        // Ignore storage failures during logout.
-      }
-      notifyChange();
-    },
-  };
+  useEffect(() => {
+    let active = true;
+    function signedOut() {
+      active = false;
+      setStatus("unauthenticated");
+    }
+    function onStorage(event: StorageEvent) {
+      if (event.key === ADMIN_SIGNED_OUT) signedOut();
+    }
+    window.addEventListener(ADMIN_SIGNED_OUT, signedOut);
+    window.addEventListener("storage", onStorage);
+    adminRequest("auth/me").then(
+      () => { if (active) setStatus("authenticated"); },
+      () => { if (active) setStatus("unauthenticated"); },
+    );
+    return () => {
+      active = false;
+      window.removeEventListener(ADMIN_SIGNED_OUT, signedOut);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{
+      status,
+      async login(identifier, password) {
+        const login = identifier.includes("@") ? { email: identifier } : { username: identifier.toLowerCase() };
+        await sessionRequest("login", { ...login, password });
+        setStatus("authenticated");
+      },
+      async logout() {
+        const { data } = await sessionRequest<{ revoked: boolean }>("logout");
+        setStatus("unauthenticated");
+        if (!data.revoked) notify("Anda sudah keluar di browser ini. Pencabutan sesi di server belum terkonfirmasi.", "info");
+        try { localStorage.setItem(ADMIN_SIGNED_OUT, crypto.randomUUID()); } catch {}
+      },
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAdminAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAdminAuth harus dipakai di dalam AdminAuthProvider.");
-  }
-  return context;
+  const auth = useContext(AuthContext);
+  if (!auth) throw new Error("AdminAuthProvider diperlukan.");
+  return auth;
 }

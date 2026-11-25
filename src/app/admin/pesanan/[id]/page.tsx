@@ -1,16 +1,17 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ArrowLeft, FilePlus2, Pencil, Trash2 } from "lucide-react";
 import type { OrderStatus } from "@/types/admin";
 import { useAdminData } from "@/components/admin/data-provider";
 import { useToast } from "@/components/admin/toast";
 import { OrderFormModal } from "@/components/admin/order-form";
+import { TransactionArchive } from "@/components/admin/transaction-archive";
 import {
   AdminPageHeader,
-  ConfirmDialog,
+  Modal,
   EmptyState,
   StatusBadge,
 } from "@/components/admin/ui";
@@ -27,11 +28,12 @@ import {
 
 export default function AdminOrderDetailPage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
-  const { orders, invoices, updateOrderStatus, deleteOrder } = useAdminData();
+  const { orders, invoices, updateOrderStatus } = useAdminData();
   const { notify } = useToast();
   const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [pending, setPending] = useState(false);
 
   const order = orders.find((item) => item.id === params.id);
   const relatedInvoices = invoices.filter((invoice) => invoice.orderId === order?.id);
@@ -39,7 +41,7 @@ export default function AdminOrderDetailPage() {
   if (!order) {
     return (
       <>
-        <AdminPageHeader title="Pesanan tidak ditemukan" description="Data pesanan tidak tersedia pada sesi ini." />
+        <AdminPageHeader title="Pesanan tidak ditemukan" description="Periksa tautan atau buka daftar pesanan." />
         <div className="admin-card">
           <EmptyState
             title="Pesanan tidak ditemukan"
@@ -58,22 +60,31 @@ export default function AdminOrderDetailPage() {
   const statusMeta = orderStatusMeta[order.status];
   const total = orderTotal(order);
 
-  function handleStatusChange(status: OrderStatus) {
-    if (!order) return;
-    updateOrderStatus(order.id, status);
-    notify(`Status ${order.number} diubah menjadi ${orderStatusMeta[status].label}.`, "info");
+  const canCancel = order.status !== "selesai" && order.status !== "dibatalkan";
+  const options = new Set<OrderStatus>([order.status]);
+  if (order.confirmed) {
+    if (order.status === "baru") options.add("diproses");
+    if (order.status === "diproses") { options.add("dikirim"); options.add("selesai"); }
+    if (order.status === "dikirim") options.add("selesai");
   }
 
-  function handleDelete() {
-    if (!order) return;
-    const result = deleteOrder(order.id);
-    if (!result.ok) {
-      notify(result.message, "danger");
-      setDeleteOpen(false);
-      return;
+  async function handleStatusChange(status: OrderStatus, reason?: string) {
+    if (!order || pending) return;
+    setPending(true);
+    try {
+      await updateOrderStatus(order.id, status, reason);
+      notify(`Status ${order.number} diubah menjadi ${orderStatusMeta[status].label}.`, "info");
+      setCancelOpen(false);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Status belum berubah.", "danger");
+    } finally {
+      setPending(false);
     }
-    notify(`Pesanan ${order.number} dihapus.`, "info");
-    router.push("/admin/pesanan");
+  }
+
+  function handleCancel(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (reason.trim()) void handleStatusChange("dibatalkan", reason.trim());
   }
 
   return (
@@ -84,19 +95,20 @@ export default function AdminOrderDetailPage() {
       </Link>
 
       <AdminPageHeader
-        eyebrow={`Pesanan · ${formatDate(order.orderDate)}`}
+        eyebrow={`Pesanan · ${formatDate(order.orderDate)}${order.archivedAt ? " · Arsip" : ""}`}
         title={order.number}
         description={`${order.customerCompany || order.customerName} · ${order.items.length} item · ${formatCurrency(total)}`}
         actions={
           <div className="admin-page-actions">
-            <Link href={`/admin/invoice/baru?order=${order.id}`} className="admin-btn admin-btn--primary">
+            {(order.confirmed || (canCancel && !order.archivedAt)) && <Link href={`/admin/invoice/baru?order=${order.id}`} className="admin-btn admin-btn--primary">
               <FilePlus2 size={16} aria-hidden="true" />
-              Buat invoice
-            </Link>
+              {order.confirmed ? "Lihat invoice" : "Buat invoice"}
+            </Link>}
             <button
               type="button"
               className="admin-btn admin-btn--outline"
               onClick={() => setEditOpen(true)}
+              disabled={order.status === "dibatalkan"}
             >
               <Pencil size={15} aria-hidden="true" />
               Edit
@@ -104,11 +116,13 @@ export default function AdminOrderDetailPage() {
             <button
               type="button"
               className="admin-btn admin-btn--ghost admin-btn--danger-text"
-              onClick={() => setDeleteOpen(true)}
+              onClick={() => setCancelOpen(true)}
+              disabled={!canCancel || pending}
             >
               <Trash2 size={15} aria-hidden="true" />
-              Hapus
+              Batalkan pesanan
             </button>
+            <TransactionArchive resource="orders" id={order.id} number={order.number} archivedAt={order.archivedAt} />
           </div>
         }
       />
@@ -146,9 +160,10 @@ export default function AdminOrderDetailPage() {
             <span>Ubah status</span>
             <select
               value={order.status}
+              disabled={options.size === 1 || pending}
               onChange={(event) => handleStatusChange(event.target.value as OrderStatus)}
             >
-              {orderStatusOptions.map(([value, meta]) => (
+              {orderStatusOptions.filter(([value]) => options.has(value)).map(([value, meta]) => (
                 <option value={value} key={value}>
                   {meta.label}
                 </option>
@@ -241,9 +256,7 @@ export default function AdminOrderDetailPage() {
               <h2>Invoice terkait</h2>
               <p>Invoice yang dibuat dari pesanan ini.</p>
             </div>
-            <Link href={`/admin/invoice/baru?order=${order.id}`} className="admin-text-link">
-              Buat invoice baru
-            </Link>
+
           </div>
           {relatedInvoices.length > 0 ? (
             <div className="admin-table-wrap">
@@ -252,7 +265,7 @@ export default function AdminOrderDetailPage() {
                   <tr>
                     <th scope="col">Invoice</th>
                     <th scope="col">Tanggal</th>
-                    <th scope="col">Jatuh tempo</th>
+                    <th scope="col">Target selesai pesanan</th>
                     <th scope="col">Total</th>
                     <th scope="col">Status</th>
                     <th scope="col" className="admin-table-action">
@@ -304,16 +317,18 @@ export default function AdminOrderDetailPage() {
         <OrderFormModal
           order={order}
           onClose={() => setEditOpen(false)}
-          onSaved={() => router.push("/admin/pesanan")}
         />
       )}
-      {deleteOpen && (
-        <ConfirmDialog
-          title="Hapus pesanan?"
-          message={`Pesanan ${order.number} beserta invoice terkait akan dihapus.`}
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteOpen(false)}
-        />
+      {cancelOpen && (
+        <Modal title="Batalkan pesanan" description="Pesanan dan invoice terkait akan tetap tercatat." onClose={() => { if (!pending) setCancelOpen(false); }} size="sm">
+          <form className="admin-form" onSubmit={handleCancel}>
+            <label className="admin-field">
+              <span>Alasan pembatalan</span>
+              <textarea required maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} disabled={pending} />
+            </label>
+            <button className="admin-btn admin-btn--danger" type="submit" disabled={pending || !reason.trim()}>Batalkan pesanan</button>
+          </form>
+        </Modal>
       )}
     </>
   );

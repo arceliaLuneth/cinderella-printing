@@ -18,6 +18,7 @@ const currency = new Intl.NumberFormat("id-ID", {
 });
 
 const dateFormatter = new Intl.DateTimeFormat("id-ID", {
+  timeZone: "Asia/Jakarta",
   day: "numeric",
   month: "short",
   year: "numeric",
@@ -33,7 +34,7 @@ export function formatCurrencyPlain(value: number) {
 
 export function formatDate(value: string) {
   if (!value) return "—";
-  const date = new Date(`${value.slice(0, 10)}T00:00:00`);
+  const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return dateFormatter.format(date);
 }
@@ -45,21 +46,22 @@ export function formatDateTime(value: string) {
   return `${formatDate(value)} · ${new Intl.DateTimeFormat("id-ID", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Jakarta",
   }).format(date)}`;
 }
 
 export function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Jakarta" }).format(new Date());
 }
 
 export function addDaysISO(value: string, days: number) {
-  const date = new Date(`${value.slice(0, 10)}T00:00:00`);
-  date.setDate(date.getDate() + days);
+  const date = new Date(`${value.slice(0, 10)}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 }
 
 export function lineTotal(item: Pick<LineItem, "quantity" | "unitPrice">) {
-  return item.quantity * item.unitPrice;
+  return Math.round(Math.round(item.quantity * 1000) * item.unitPrice / 1000);
 }
 
 export function itemsTotal(items: Pick<LineItem, "quantity" | "unitPrice">[]) {
@@ -67,17 +69,17 @@ export function itemsTotal(items: Pick<LineItem, "quantity" | "unitPrice">[]) {
 }
 
 export function orderTotal(order: Order) {
-  return itemsTotal(order.items);
+  return itemsTotal(order.items) + order.additionalCost - order.discount;
 }
 
 export function calculateInvoiceTotals(invoice: {
   items: Pick<LineItem, "quantity" | "unitPrice">[];
-  taxPercent?: number;
   discount: number;
+  additionalCost: number;
 }): InvoiceTotals {
   const subtotal = itemsTotal(invoice.items);
-  const discount = Math.min(Math.max(invoice.discount, 0), subtotal);
-  return { subtotal, discount, tax: 0, total: subtotal - discount };
+  return { subtotal, discount: invoice.discount, additionalCost: invoice.additionalCost,
+    total: subtotal + invoice.additionalCost - invoice.discount };
 }
 
 export function invoiceTotal(invoice: Invoice) {
@@ -99,18 +101,16 @@ export function slugify(value: string) {
 
 export const orderStatusMeta: Record<OrderStatus, { label: string; tone: Tone }> = {
   baru: { label: "Baru", tone: "info" },
-  dikonfirmasi: { label: "Dikonfirmasi", tone: "warning" },
-  produksi: { label: "Produksi", tone: "progress" },
-  "siap-kirim": { label: "Siap kirim", tone: "info" },
+  diproses: { label: "Diproses", tone: "progress" },
+  dikirim: { label: "Dikirim", tone: "info" },
   selesai: { label: "Selesai", tone: "success" },
   dibatalkan: { label: "Dibatalkan", tone: "danger" },
 };
 
 export const invoiceStatusMeta: Record<InvoiceStatus, { label: string; tone: Tone }> = {
-  draft: { label: "Draft", tone: "neutral" },
-  terkirim: { label: "Terkirim", tone: "info" },
+  belum_bayar: { label: "Belum bayar", tone: "info" },
+  dp: { label: "DP diterima", tone: "warning" },
   lunas: { label: "Lunas", tone: "success" },
-  "jatuh-tempo": { label: "Jatuh tempo", tone: "danger" },
   dibatalkan: { label: "Dibatalkan", tone: "neutral" },
 };
 

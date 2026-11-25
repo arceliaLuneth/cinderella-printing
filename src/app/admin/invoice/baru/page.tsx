@@ -1,45 +1,81 @@
-﻿"use client";
+"use client";
 
+import { Suspense, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { useAdminData } from "@/components/admin/data-provider";
-import { InvoiceForm } from "@/components/admin/invoice-form";
-import { useClientReady } from "@/components/admin/use-client-ready";
-import { AdminPageHeader, LoadingPanel } from "@/components/admin/ui";
+import { OrderFormModal } from "@/components/admin/order-form";
+import { AdminPageHeader } from "@/components/admin/ui";
+import { formatCurrency, formatDate, formatNumber, lineTotal, orderTotal } from "@/lib/admin/format";
 
-export default function AdminNewInvoicePage() {
+function CreateInvoice() {
   const router = useRouter();
-  const { orders } = useAdminData();
-  const ready = useClientReady();
-  const orderId = useSearchParams().get("order");
+  const params = useSearchParams();
+  const { orders, invoices, createInvoice } = useAdminData();
+  const eligible = orders.filter((order) => order.status === "baru" && !order.confirmed && !order.archivedAt);
+  const [orderId, setOrderId] = useState(params.get("order") ?? "");
+  const [editingOrder, setEditingOrder] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  const existing = invoices.find((invoice) => invoice.orderId === orderId);
+  const selected = eligible.find((order) => order.id === orderId);
 
-  if (!ready) return <LoadingPanel label="Menyiapkan formulir invoice…" />;
-
-  const initialOrder = orderId ? orders.find((order) => order.id === orderId) : undefined;
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selected || pending || editingOrder) return;
+    setPending(true);
+    setError("");
+    try {
+      const invoice = await createInvoice(selected.id);
+      router.replace(`/admin/invoice/${invoice.id}`);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Invoice belum terbit.");
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <>
-      <Link href="/admin/invoice" className="admin-back-link">
-        <ArrowLeft size={15} aria-hidden="true" />
-        Kembali ke invoice
-      </Link>
-
-      <AdminPageHeader
-        eyebrow="Transaksi"
-        title="Buat invoice"
-        description={
-          initialOrder
-            ? `Data pelanggan dan item diambil dari pesanan ${initialOrder.number}.`
-            : "Isi data invoice secara manual atau pilih pesanan sebagai sumber data."
-        }
-      />
-
-      <InvoiceForm
-        initialOrder={initialOrder}
-        onSaved={() => router.push("/admin/invoice")}
-        onCancel={() => router.push("/admin/invoice")}
-      />
+      <AdminPageHeader title="Terbitkan invoice" description="Pilih pesanan dan periksa rinciannya sebelum menerbitkan invoice." />
+      {existing ? (
+        <Link className="admin-btn admin-btn--primary" href={`/admin/invoice/${existing.id}`}>Buka invoice {existing.number}</Link>
+      ) : eligible.length ? (
+        <form className="admin-card admin-form" onSubmit={submit}>
+          <label className="admin-field">
+            <span>Pesanan</span>
+            <select required value={selected?.id ?? ""} onChange={(event) => { setOrderId(event.target.value); setError(""); }} disabled={pending}>
+              <option value="">Pilih pesanan</option>
+              {eligible.map((order) => <option key={order.id} value={order.id}>{order.number} · {order.customerName}</option>)}
+            </select>
+          </label>
+          {selected && (
+            <section className="admin-form-section" aria-label="Ringkasan pesanan">
+              <div className="admin-form-section-head">
+                <h3>{selected.number} · {selected.customerName}</h3>
+                <button type="button" className="admin-btn admin-btn--outline" disabled={pending}
+                  onClick={() => { setError(""); setEditingOrder(true); }}>Edit pesanan</button>
+              </div>
+              <p>Tenggat {formatDate(selected.dueDate)}</p>
+              <ul>
+                {selected.items.map((item) => (
+                  <li key={item.id}>{item.name} · {formatNumber(item.quantity)} × {formatCurrency(item.unitPrice)} = {formatCurrency(lineTotal(item))}</li>
+                ))}
+              </ul>
+              <p><strong>Total {formatCurrency(orderTotal(selected))}</strong></p>
+            </section>
+          )}
+          {error && <p className="admin-field-error" role="alert">{error}</p>}
+          <div className="admin-form-actions">
+            <button className="admin-btn admin-btn--primary" type="submit" disabled={pending || !selected || editingOrder}>{pending ? "Menerbitkan…" : "Konfirmasi dan terbitkan"}</button>
+          </div>
+        </form>
+      ) : <Link href="/admin/pesanan" className="admin-btn admin-btn--primary">Buka daftar pesanan</Link>}
+      {editingOrder && selected && <OrderFormModal order={selected} onClose={() => setEditingOrder(false)} />}
     </>
   );
+}
+
+export default function NewInvoicePage() {
+  return <Suspense fallback={<p role="status">Memuat daftar pesanan…</p>}><CreateInvoice /></Suspense>;
 }

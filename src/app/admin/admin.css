@@ -1,5 +1,7 @@
 ﻿.admin-root,
 .admin-login,
+.admin-modal-overlay,
+.admin-toast-region,
 .admin-auth-loading {
   --admin-bg: #f2f4f3;
   --admin-panel: #ffffff;
@@ -25,6 +27,9 @@
 .admin-root *,
 .admin-root *::before,
 .admin-root *::after,
+.admin-modal-overlay *,
+.admin-modal-overlay *::before,
+.admin-modal-overlay *::after,
 .admin-login *,
 .admin-login *::before,
 .admin-login *::after {
@@ -32,17 +37,20 @@
 }
 
 .admin-root :where(a, button, input, select, textarea):focus-visible,
+.admin-modal-overlay :where(a, button, input, select, textarea):focus-visible,
 .admin-login :where(a, button, input, select, textarea):focus-visible {
   outline: 3px solid rgba(0, 160, 224, 0.42);
   outline-offset: 2px;
 }
 
 .admin-root textarea,
+.admin-modal-overlay textarea,
 .admin-login textarea {
   font: inherit;
 }
 
 /* Shell layout */
+.admin-sidebar-action.admin-mobile-site-link { display: none; }
 .admin-root {
   display: flex;
   min-height: 100vh;
@@ -1283,6 +1291,41 @@
   line-height: 1.55;
 }
 
+.admin-product-photo-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 8px;
+}
+
+.admin-product-photo-preview img {
+  width: 96px;
+  height: 76px;
+  object-fit: cover;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+}
+
+.admin-product-table-photo {
+  display: block;
+  width: 64px;
+  height: 48px;
+  margin-bottom: 7px;
+  border: 1px solid var(--admin-border);
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.invoice-payment-history {
+  margin-top: 16px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.invoice-payment-history h2 { margin: 0 0 10px; font-size: 14px; }
+.invoice-payment-history ul { list-style: none; margin: 0; padding: 0; }
+.invoice-payment-history li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; }
+
 .admin-form-hint code {
   padding: 1px 5px;
   border-radius: 4px;
@@ -1844,6 +1887,9 @@
   text-align: right;
 }
 
+.invoice-table-scroll { min-width: 0; max-width: 100%; overflow-x: auto; }
+.invoice-paper { min-width: 0; overflow-wrap: anywhere; }
+@media print { .invoice-table-scroll { overflow: visible; } }
 .invoice-table {
   width: 100%;
   border-collapse: collapse;
@@ -2203,6 +2249,7 @@
 @media (max-width: 960px) {
   .admin-sidebar {
     position: fixed;
+    visibility: hidden;
     left: 0;
     top: 0;
     transform: translateX(-104%);
@@ -2211,6 +2258,7 @@
   }
 
   .admin-root--menu-open .admin-sidebar {
+    visibility: visible;
     transform: translateX(0);
   }
 
@@ -2361,6 +2409,7 @@
   .admin-topbar-right .admin-btn {
     display: none;
   }
+  .admin-sidebar-action.admin-mobile-site-link { display: flex; }
 
   .admin-modal-overlay {
     padding: 12px;

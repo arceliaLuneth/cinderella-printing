@@ -13,6 +13,6 @@ NEXT_PUBLIC_BUSINESS_HOURS=
 
 Use the WhatsApp number in international format without `+`, spaces, or punctuation.
 
-Before publishing, replace the visual placeholders with approved product, packaging, facility, or portfolio photographs. The current catalogue and portfolio entries are reference examples, not claims about completed customer projects.
+Add approved product photos through the admin product form. The home page, catalogue, and photo gallery show products from active categories when the products are active.
 
 Confirm MOQ, available materials, dimensions, production lead times, delivery coverage, address, and operating hours with Cinderella Printing. The site intentionally does not invent these details or add online checkout/payment functionality.

@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, EyeOff } from "lucide-react";
 import type { Product, ProductStatus } from "@/types/admin";
 import { useAdminData } from "@/components/admin/data-provider";
 import { useToast } from "@/components/admin/toast";
@@ -24,13 +24,14 @@ import {
 type ModalState = { mode: "create" } | { mode: "edit"; product: Product } | null;
 
 export default function AdminProductsPage() {
-  const { products, categories, deleteProduct } = useAdminData();
+  const { products, categories, deactivateProduct } = useAdminData();
   const { notify } = useToast();
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState("all");
   const [status, setStatus] = useState<"all" | ProductStatus>("all");
   const [modal, setModal] = useState<ModalState>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [deactivating, setDeactivating] = useState(false);
+  const [deactivateTarget, setDeactivateTarget] = useState<Product | null>(null);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("id-ID");
@@ -47,11 +48,18 @@ export default function AdminProductsPage() {
 
   const activeCount = products.filter((product) => product.status === "aktif").length;
 
-  function handleDelete() {
-    if (!deleteTarget) return;
-    deleteProduct(deleteTarget.id);
-    notify(`Produk “${deleteTarget.name}” dihapus.`, "info");
-    setDeleteTarget(null);
+  async function handleDeactivate() {
+    if (!deactivateTarget || deactivating) return;
+    setDeactivating(true);
+    try {
+      await deactivateProduct(deactivateTarget.id);
+      notify(`Produk “${deactivateTarget.name}” dinonaktifkan.`, "info");
+      setDeactivateTarget(null);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Produk belum dapat dinonaktifkan.", "danger");
+    } finally {
+      setDeactivating(false);
+    }
   }
 
   return (
@@ -167,6 +175,10 @@ export default function AdminProductsPage() {
                   return (
                     <tr key={product.id}>
                       <td>
+                        {product.imageUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element -- Foto katalog pada sesi admin.
+                          <img className="admin-product-table-photo" src={product.imageUrl} alt={`Foto ${product.name}`} />
+                        )}
                         <strong>{product.name}</strong>
                         <small>
                           {product.sku} · ditambahkan {formatDate(product.createdAt)}
@@ -174,7 +186,7 @@ export default function AdminProductsPage() {
                       </td>
                       <td>{category?.name ?? "Tanpa kategori"}</td>
                       <td>
-                        <strong>{formatCurrency(product.price)}</strong>
+                        <strong>{product.price === null ? "Hubungi kami" : formatCurrency(product.price)}</strong>
                         <small>per {product.unit}</small>
                       </td>
                       <td>
@@ -196,10 +208,11 @@ export default function AdminProductsPage() {
                           <button
                             type="button"
                             className="admin-icon-btn admin-icon-btn--danger"
-                            onClick={() => setDeleteTarget(product)}
-                            aria-label={`Hapus ${product.name}`}
+                            onClick={() => setDeactivateTarget(product)}
+                            disabled={product.status === "nonaktif"}
+                            aria-label={`Nonaktifkan ${product.name}`}
                           >
-                            <Trash2 size={15} aria-hidden="true" />
+                            <EyeOff size={15} aria-hidden="true" />
                           </button>
                         </div>
                       </td>
@@ -233,12 +246,14 @@ export default function AdminProductsPage() {
           onClose={() => setModal(null)}
         />
       )}
-      {deleteTarget && (
+      {deactivateTarget && (
         <ConfirmDialog
-          title="Hapus produk?"
-          message={`Produk “${deleteTarget.name}” akan dihapus dari katalog. Riwayat item pada pesanan dan invoice tetap tersimpan.`}
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
+          title="Nonaktifkan produk?"
+          message={`Produk “${deactivateTarget.name}” akan disembunyikan dari katalog dan pilihan pesanan baru. Anda bisa mengaktifkannya kembali lewat Edit.`}
+          confirmLabel="Nonaktifkan"
+          pending={deactivating}
+          onConfirm={handleDeactivate}
+          onCancel={() => setDeactivateTarget(null)}
         />
       )}
     </>

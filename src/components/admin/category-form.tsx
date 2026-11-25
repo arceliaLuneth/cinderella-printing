@@ -21,29 +21,35 @@ export function CategoryFormModal({
   const [description, setDescription] = useState(category?.description ?? "");
   const [status, setStatus] = useState<CategoryStatus>(category?.status ?? "aktif");
   const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (pending) return;
     if (!name.trim()) {
       setError("Nama kategori wajib diisi.");
       return;
     }
     const input = { name: name.trim(), description: description.trim(), status };
-    if (category) {
-      updateCategory(category.id, input);
-      notify(`Kategori “${input.name}” diperbarui.`);
-    } else {
-      addCategory(input);
-      notify(`Kategori “${input.name}” ditambahkan.`);
+    setPending(true);
+    setError("");
+    try {
+      if (category) await updateCategory(category.id, input);
+      else await addCategory(input);
+      notify(`Kategori “${input.name}” disimpan.`);
+      onClose();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Kategori belum tersimpan.");
+    } finally {
+      setPending(false);
     }
-    onClose();
   }
 
   return (
     <Modal
       title={category ? "Edit kategori" : "Tambah kategori"}
       description="Nama kategori dipakai sebagai pengelompokan produk di katalog."
-      onClose={onClose}
+      onClose={() => { if (!pending) onClose(); }}
     >
       <form className="admin-form" onSubmit={handleSubmit}>
         <label className="admin-field" htmlFor={`${id}-name`}>
@@ -99,7 +105,7 @@ export function CategoryFormModal({
           <button type="button" className="admin-btn admin-btn--ghost" onClick={onClose}>
             Batal
           </button>
-          <button type="submit" className="admin-btn admin-btn--primary">
+          <button type="submit" className="admin-btn admin-btn--primary" disabled={pending}>
             {category ? "Simpan perubahan" : "Tambah kategori"}
           </button>
         </div>

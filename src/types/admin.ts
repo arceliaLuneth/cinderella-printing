@@ -17,7 +17,8 @@ export interface Product {
   name: string;
   categoryId: string;
   description: string;
-  price: number;
+  imageUrl?: string;
+  price: number | null;
   unit: string;
   minOrder: number;
   status: ProductStatus;
@@ -31,21 +32,24 @@ export interface Customer {
   phone: string;
   email: string;
   address: string;
+  notes: string;
+  active: boolean;
 }
 
 export interface LineItem {
+  unit?: string;
   id: string;
   productId: string;
   name: string;
   quantity: number;
   unitPrice: number;
+  specifications: { size: string; material: string; finishing: string; notes: string };
 }
 
 export type OrderStatus =
   | "baru"
-  | "dikonfirmasi"
-  | "produksi"
-  | "siap-kirim"
+  | "diproses"
+  | "dikirim"
   | "selesai"
   | "dibatalkan";
 
@@ -62,9 +66,16 @@ export interface Order {
   orderDate: string;
   dueDate: string;
   notes: string;
+  source: "whatsapp" | "langsung";
+  confirmed: boolean;
+  editVersion: string;
+  archivedAt: string | null;
+  paidAmount: number;
+  discount: number;
+  additionalCost: number;
 }
 
-export type InvoiceStatus = "draft" | "terkirim" | "lunas" | "jatuh-tempo" | "dibatalkan";
+export type InvoiceStatus = "belum_bayar" | "dp" | "lunas" | "dibatalkan";
 
 export interface Invoice {
   id: string;
@@ -78,41 +89,50 @@ export interface Invoice {
   items: LineItem[];
   issueDate: string;
   dueDate: string;
-  taxPercent: number;
   discount: number;
+  additionalCost: number;
   notes: string;
   status: InvoiceStatus;
-  createdAt: string;
+  sentAt: string | null;
+  revision: number;
+  revisedAt: string | null;
+  archivedAt: string | null;
+  paidAmount: number;
+  payments: InvoicePayment[];
+  business: { business_name: string; address: string; phone: string; email: string };
 }
+
+export interface InvoicePayment {
+  id: string;
+  amount: number;
+  method: "tunai" | "transfer";
+  reference: string;
+  paidAt: string;
+}
+
+export type InvoiceRevision = {
+  id: string;
+  revision: number;
+  archived_at: string;
+  total: string;
+};
 
 export type CategoryInput = Pick<Category, "name" | "description" | "status">;
 
 export type ProductInput = Pick<
   Product,
-  "name" | "sku" | "categoryId" | "description" | "price" | "unit" | "minOrder" | "status"
+  "name" | "sku" | "categoryId" | "description" | "imageUrl" | "price" | "unit" | "minOrder" | "status"
 >;
 
-export type OrderInput = Pick<Order, "customerId" | "status" | "orderDate" | "dueDate" | "notes"> & {
-  items: Omit<LineItem, "id">[];
-};
+export type CustomerInput = { name: string; phone: string; email: string | null; address: string; notes: string; is_active: boolean };
 
-export type InvoiceInput = Pick<
-  Invoice,
-  | "orderId"
-  | "customerId"
-  | "issueDate"
-  | "dueDate"
-  | "taxPercent"
-  | "discount"
-  | "notes"
-  | "status"
-> & {
+export type OrderInput = Pick<Order, "customerId" | "source" | "dueDate" | "notes" | "discount" | "additionalCost"> & {
   items: Omit<LineItem, "id">[];
 };
 
 export interface InvoiceTotals {
   subtotal: number;
   discount: number;
-  tax: number;
+  additionalCost: number;
   total: number;
 }

@@ -27,9 +27,6 @@ export default function AboutPage() {
       />
 
       <section className="section container about-feature">
-        <div className="image-placeholder feature-image" role="img" aria-label="Foto produk atau kegiatan Cinderella Printing akan ditambahkan">
-          Foto produk atau kegiatan usaha akan ditambahkan
-        </div>
         <div>
           <p className="eyebrow">CETAK &amp; KEMASAN CUSTOM</p>
           <h2>Informasi yang jelas membantu kebutuhan dibahas dengan tepat.</h2>

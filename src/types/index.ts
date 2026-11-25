@@ -1,21 +1,3 @@
-export type ProductCategory =
-  | "Packaging Makanan"
-  | "Pouch"
-  | "Cup"
-  | "Custom Packaging";
-
-export interface Product {
-  id: string;
-  slug: string;
-  name: string;
-  category: ProductCategory;
-  description: string;
-  moq: string;
-  material: string;
-  size: string;
-  image?: string;
-}
-
 export interface ConsultationDraft {
   product: string;
   quantity: string;

@@ -1,0 +1,11 @@
+-- Jalankan melalui SQL Editor Supabase jika memakai fitur upload gambar.
+-- Bucket ini khusus gambar katalog publik, bukan invoice atau data pelanggan.
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('catalog-images', 'catalog-images', true, 5242880,
+  ARRAY['image/jpeg','image/png','image/webp'])
+ON CONFLICT (id) DO UPDATE SET
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
+-- Tidak menambahkan policy tulis untuk anon/authenticated.
+-- Upload hanya melalui backend dengan service role setelah verifikasi admin.

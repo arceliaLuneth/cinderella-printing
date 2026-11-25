@@ -1,14 +1,12 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
-import type { Invoice, InvoiceStatus } from "@/types/admin";
+import { Eye, Plus } from "lucide-react";
+import type { InvoiceStatus } from "@/types/admin";
 import { useAdminData } from "@/components/admin/data-provider";
-import { useToast } from "@/components/admin/toast";
 import {
   AdminPageHeader,
-  ConfirmDialog,
   EmptyState,
   SearchField,
   StatusBadge,
@@ -22,11 +20,10 @@ import {
 } from "@/lib/admin/format";
 
 export default function AdminInvoicesPage() {
-  const { invoices, deleteInvoice } = useAdminData();
-  const { notify } = useToast();
+  const { invoices } = useAdminData();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | InvoiceStatus>("all");
-  const [deleteTarget, setDeleteTarget] = useState<Invoice | null>(null);
+  const [view, setView] = useState<"main" | "archive">("main");
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("id-ID");
@@ -36,24 +33,15 @@ export default function AdminInvoicesPage() {
           .toLocaleLowerCase("id-ID")
           .includes(normalized);
         const matchesStatus = status === "all" || invoice.status === status;
-        return matchesQuery && matchesStatus;
+        return matchesQuery && matchesStatus && Boolean(invoice.archivedAt) === (view === "archive");
       })
       .sort((a, b) => b.issueDate.localeCompare(a.issueDate));
-  }, [invoices, query, status]);
+  }, [invoices, query, status, view]);
 
-  const paid = invoices
-    .filter((invoice) => invoice.status === "lunas")
-    .reduce((total, invoice) => total + calculateInvoiceTotals(invoice).total, 0);
-  const outstanding = invoices
-    .filter((invoice) => invoice.status === "terkirim" || invoice.status === "jatuh-tempo")
-    .reduce((total, invoice) => total + calculateInvoiceTotals(invoice).total, 0);
-
-  function handleDelete() {
-    if (!deleteTarget) return;
-    deleteInvoice(deleteTarget.id);
-    notify(`Invoice ${deleteTarget.number} dihapus.`, "info");
-    setDeleteTarget(null);
-  }
+  const active = invoices.filter((invoice) => invoice.status !== "dibatalkan");
+  const paid = active.reduce((sum, invoice) => sum + invoice.paidAmount, 0);
+  const outstanding = active.reduce((sum, invoice) => sum + calculateInvoiceTotals(invoice).total - invoice.paidAmount, 0);
+  const viewCount = invoices.filter((invoice) => Boolean(invoice.archivedAt) === (view === "archive")).length;
 
   return (
     <>
@@ -75,7 +63,7 @@ export default function AdminInvoicesPage() {
           <strong>{invoices.length}</strong>
         </div>
         <div>
-          <span>Nilai lunas</span>
+          <span>Pembayaran diterima</span>
           <strong>{formatCurrency(paid)}</strong>
         </div>
         <div>
@@ -83,8 +71,8 @@ export default function AdminInvoicesPage() {
           <strong>{formatCurrency(outstanding)}</strong>
         </div>
         <div>
-          <span>Draft</span>
-          <strong>{invoices.filter((invoice) => invoice.status === "draft").length}</strong>
+          <span>DP diterima</span>
+          <strong>{invoices.filter((invoice) => invoice.status === "dp").length}</strong>
         </div>
       </div>
 
@@ -97,6 +85,13 @@ export default function AdminInvoicesPage() {
             label="Cari invoice"
           />
           <div className="admin-toolbar-filters">
+            <label className="admin-select">
+              <span className="sr-only">Tampilan daftar invoice</span>
+              <select value={view} onChange={(event) => setView(event.target.value === "archive" ? "archive" : "main")}>
+                <option value="main">Daftar utama</option>
+                <option value="archive">Arsip</option>
+              </select>
+            </label>
             <label className="admin-select">
               <span className="sr-only">Filter status invoice</span>
               <select
@@ -115,7 +110,7 @@ export default function AdminInvoicesPage() {
         </div>
 
         <p className="admin-result-meta" aria-live="polite">
-          Menampilkan {filtered.length} dari {invoices.length} invoice
+          Menampilkan {filtered.length} dari {viewCount} invoice
           {(query || status !== "all") && (
             <button
               type="button"
@@ -137,9 +132,10 @@ export default function AdminInvoicesPage() {
                 <tr>
                   <th scope="col">Invoice</th>
                   <th scope="col">Pelanggan</th>
-                  <th scope="col">Jatuh tempo</th>
+                  <th scope="col">Target selesai pesanan</th>
                   <th scope="col">Total</th>
-                  <th scope="col">Status</th>
+                  <th scope="col">Pembayaran</th>
+                  <th scope="col">Pengiriman</th>
                   <th scope="col" className="admin-table-actions-col">
                     Aksi
                   </th>
@@ -156,6 +152,7 @@ export default function AdminInvoicesPage() {
                           {invoice.number}
                         </Link>
                         <small>Terbit {formatDate(invoice.issueDate)}</small>
+                        {invoice.revision > 1 && <small>Revisi {invoice.revision}</small>}
                       </td>
                       <td>
                         <strong>{invoice.customerCompany || invoice.customerName}</strong>
@@ -168,6 +165,11 @@ export default function AdminInvoicesPage() {
                       <td>
                         <StatusBadge label={meta.label} tone={meta.tone} />
                       </td>
+                      <td>
+                        {invoice.status === "dibatalkan" ? "—" : (
+                          <StatusBadge label={invoice.sentAt ? "Terkirim" : "Belum dikirim"} tone={invoice.sentAt ? "success" : "neutral"} />
+                        )}
+                      </td>
                       <td className="admin-table-actions-col">
                         <div className="admin-row-actions">
                           <Link
@@ -177,21 +179,6 @@ export default function AdminInvoicesPage() {
                           >
                             <Eye size={15} aria-hidden="true" />
                           </Link>
-                          <Link
-                            href={`/admin/invoice/${invoice.id}/edit`}
-                            className="admin-icon-btn"
-                            aria-label={`Edit invoice ${invoice.number}`}
-                          >
-                            <Pencil size={15} aria-hidden="true" />
-                          </Link>
-                          <button
-                            type="button"
-                            className="admin-icon-btn admin-icon-btn--danger"
-                            onClick={() => setDeleteTarget(invoice)}
-                            aria-label={`Hapus invoice ${invoice.number}`}
-                          >
-                            <Trash2 size={15} aria-hidden="true" />
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -202,26 +189,18 @@ export default function AdminInvoicesPage() {
           </div>
         ) : (
           <EmptyState
-            title="Invoice tidak ditemukan"
-            description="Ubah kata kunci atau filter status, atau buat invoice baru dari data pesanan."
-            action={
+            title={view === "archive" ? "Tidak ada invoice di arsip ini" : "Invoice tidak ditemukan"}
+            description={view === "archive" ? "Invoice yang diarsipkan dapat dipulihkan dari halaman detailnya." : "Ubah kata kunci atau filter status, atau buat invoice baru dari data pesanan."}
+            action={view === "main" && (
               <Link href="/admin/invoice/baru" className="admin-btn admin-btn--primary">
                 <Plus size={16} aria-hidden="true" />
                 Buat invoice
               </Link>
-            }
+            )}
           />
         )}
       </section>
 
-      {deleteTarget && (
-        <ConfirmDialog
-          title="Hapus invoice?"
-          message={`Invoice ${deleteTarget.number} akan dihapus permanen dari sesi ini.`}
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
-        />
-      )}
     </>
   );
 }

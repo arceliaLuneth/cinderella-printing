@@ -2,14 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { Eye, Pencil, Plus } from "lucide-react";
 import type { Order, OrderStatus } from "@/types/admin";
 import { useAdminData } from "@/components/admin/data-provider";
-import { useToast } from "@/components/admin/toast";
 import { OrderFormModal } from "@/components/admin/order-form";
 import {
   AdminPageHeader,
-  ConfirmDialog,
   EmptyState,
   SearchField,
   StatusBadge,
@@ -25,12 +23,11 @@ import {
 type ModalState = { mode: "create" } | { mode: "edit"; order: Order } | null;
 
 export default function AdminOrdersPage() {
-  const { orders, deleteOrder } = useAdminData();
-  const { notify } = useToast();
+  const { orders } = useAdminData();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | OrderStatus>("all");
+  const [view, setView] = useState<"main" | "archive">("main");
   const [modal, setModal] = useState<ModalState>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Order | null>(null);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("id-ID");
@@ -40,26 +37,15 @@ export default function AdminOrdersPage() {
           .toLocaleLowerCase("id-ID")
           .includes(normalized);
         const matchesStatus = status === "all" || order.status === status;
-        return matchesQuery && matchesStatus;
+        return matchesQuery && matchesStatus && Boolean(order.archivedAt) === (view === "archive");
       })
       .sort((a, b) => b.orderDate.localeCompare(a.orderDate));
-  }, [orders, query, status]);
+  }, [orders, query, status, view]);
 
   const activeCount = orders.filter(
-    (order) => order.status !== "selesai" && order.status !== "dibatalkan"
+    (order) => !order.archivedAt && order.status !== "selesai" && order.status !== "dibatalkan"
   ).length;
-
-  function handleDelete() {
-    if (!deleteTarget) return;
-    const result = deleteOrder(deleteTarget.id);
-    if (!result.ok) {
-      notify(result.message, "danger");
-      setDeleteTarget(null);
-      return;
-    }
-    notify(`Pesanan ${deleteTarget.number} dihapus.`, "info");
-    setDeleteTarget(null);
-  }
+  const viewCount = orders.filter((order) => Boolean(order.archivedAt) === (view === "archive")).length;
 
   return (
     <>
@@ -108,6 +94,13 @@ export default function AdminOrdersPage() {
           />
           <div className="admin-toolbar-filters">
             <label className="admin-select">
+              <span className="sr-only">Tampilan daftar pesanan</span>
+              <select value={view} onChange={(event) => setView(event.target.value === "archive" ? "archive" : "main")}>
+                <option value="main">Daftar utama</option>
+                <option value="archive">Arsip</option>
+              </select>
+            </label>
+            <label className="admin-select">
               <span className="sr-only">Filter status pesanan</span>
               <select
                 value={status}
@@ -125,7 +118,7 @@ export default function AdminOrdersPage() {
         </div>
 
         <p className="admin-result-meta" aria-live="polite">
-          Menampilkan {filtered.length} dari {orders.length} pesanan
+          Menampilkan {filtered.length} dari {viewCount} pesanan
           {(query || status !== "all") && (
             <button
               type="button"
@@ -202,16 +195,9 @@ export default function AdminOrdersPage() {
                             className="admin-icon-btn"
                             onClick={() => setModal({ mode: "edit", order })}
                             aria-label={`Edit pesanan ${order.number}`}
+                            disabled={order.status === "dibatalkan"}
                           >
                             <Pencil size={15} aria-hidden="true" />
-                          </button>
-                          <button
-                            type="button"
-                            className="admin-icon-btn admin-icon-btn--danger"
-                            onClick={() => setDeleteTarget(order)}
-                            aria-label={`Hapus pesanan ${order.number}`}
-                          >
-                            <Trash2 size={15} aria-hidden="true" />
                           </button>
                         </div>
                       </td>
@@ -223,9 +209,9 @@ export default function AdminOrdersPage() {
           </div>
         ) : (
           <EmptyState
-            title="Pesanan tidak ditemukan"
-            description="Ubah kata kunci atau filter status, atau buat pesanan baru."
-            action={
+            title={view === "archive" ? "Tidak ada pesanan di arsip ini" : "Pesanan tidak ditemukan"}
+            description={view === "archive" ? "Pesanan yang diarsipkan dapat dipulihkan dari halaman detailnya." : "Ubah kata kunci atau filter status, atau buat pesanan baru."}
+            action={view === "main" && (
               <button
                 type="button"
                 className="admin-btn admin-btn--primary"
@@ -234,7 +220,7 @@ export default function AdminOrdersPage() {
                 <Plus size={16} aria-hidden="true" />
                 Buat pesanan
               </button>
-            }
+            )}
           />
         )}
       </section>
@@ -243,14 +229,6 @@ export default function AdminOrdersPage() {
         <OrderFormModal
           order={modal.mode === "edit" ? modal.order : undefined}
           onClose={() => setModal(null)}
-        />
-      )}
-      {deleteTarget && (
-        <ConfirmDialog
-          title="Hapus pesanan?"
-          message={`Pesanan ${deleteTarget.number} beserta invoice terkait akan dihapus.`}
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
         />
       )}
     </>

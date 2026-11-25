@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import {
@@ -17,27 +17,24 @@ import {
   formatCurrency,
   formatDate,
   invoiceStatusMeta,
+  lineTotal,
   orderStatusMeta,
   orderTotal,
+  todayISO,
 } from "@/lib/admin/format";
 
 export default function AdminDashboardPage() {
   const { orders, invoices, products, categories } = useAdminData();
 
   const activeOrders = orders.filter(
-    (order) => order.status !== "selesai" && order.status !== "dibatalkan"
+    (order) => !order.archivedAt && order.status !== "selesai" && order.status !== "dibatalkan"
   );
-  const paidInvoices = invoices.filter((invoice) => invoice.status === "lunas");
-  const revenue = paidInvoices.reduce(
-    (total, invoice) => total + calculateInvoiceTotals(invoice).total,
-    0
-  );
-  const receivable = invoices
-    .filter((invoice) => invoice.status === "terkirim" || invoice.status === "jatuh-tempo")
-    .reduce((total, invoice) => total + calculateInvoiceTotals(invoice).total, 0);
+  const activeInvoices = invoices.filter((invoice) => invoice.status !== "dibatalkan");
+  const revenue = activeInvoices.reduce((total, invoice) => total + invoice.paidAmount, 0);
+  const receivable = activeInvoices.reduce((total, invoice) => total + calculateInvoiceTotals(invoice).total - invoice.paidAmount, 0);
   const activeProducts = products.filter((product) => product.status === "aktif");
 
-  const recentOrders = [...orders]
+  const recentOrders = orders.filter((order) => !order.archivedAt)
     .sort((a, b) => b.orderDate.localeCompare(a.orderDate))
     .slice(0, 5);
 
@@ -52,9 +49,9 @@ export default function AdminDashboardPage() {
   });
   const maxStatusCount = Math.max(...statusCounts.map((entry) => entry.count), 1);
 
-  const attentionInvoices = invoices
-    .filter((invoice) => invoice.status === "terkirim" || invoice.status === "jatuh-tempo")
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+  const attentionInvoices = activeInvoices
+    .filter((invoice) => !invoice.archivedAt && invoice.status !== "lunas")
+    .sort((a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"))
     .slice(0, 4);
 
   const productSales = new Map<string, { name: string; quantity: number; revenue: number }>();
@@ -70,7 +67,7 @@ export default function AdminDashboardPage() {
         productSales.set(item.productId, {
           name: item.name,
           quantity: current.quantity + item.quantity,
-          revenue: current.revenue + item.quantity * item.unitPrice,
+          revenue: current.revenue + lineTotal(item),
         });
       });
     });
@@ -102,16 +99,16 @@ export default function AdminDashboardPage() {
           tone="info"
         />
         <StatCard
-          label="Pendapatan lunas"
+          label="Pembayaran diterima"
           value={formatCurrency(revenue)}
-          hint={`${paidInvoices.length} invoice lunas`}
+          hint={`${activeInvoices.filter((invoice) => invoice.status === "lunas").length} invoice lunas`}
           icon={<Wallet size={20} />}
           tone="success"
         />
         <StatCard
           label="Piutang berjalan"
           value={formatCurrency(receivable)}
-          hint="Invoice terkirim dan jatuh tempo"
+          hint="Sisa tagihan setelah pembayaran diterima"
           icon={<TrendingUp size={20} />}
           tone="warning"
         />
@@ -217,7 +214,7 @@ export default function AdminDashboardPage() {
           <div className="admin-card-head">
             <div>
               <h2>Invoice perlu perhatian</h2>
-              <p>Invoice terkirim atau sudah melewati jatuh tempo.</p>
+              <p>Invoice aktif dengan sisa tagihan, diurutkan menurut target selesai pesanan.</p>
             </div>
             <Link href="/admin/invoice" className="admin-text-link">
               Lihat invoice <ArrowUpRight size={14} aria-hidden="true" />
@@ -230,7 +227,7 @@ export default function AdminDashboardPage() {
               return (
                 <li key={invoice.id}>
                   <span className="admin-activity-icon" aria-hidden="true">
-                    {invoice.status === "jatuh-tempo" ? (
+                    {invoice.dueDate && invoice.dueDate < todayISO() ? (
                       <AlertCircle size={17} />
                     ) : (
                       <FileText size={17} />
@@ -239,12 +236,12 @@ export default function AdminDashboardPage() {
                   <div className="admin-activity-body">
                     <Link href={`/admin/invoice/${invoice.id}`}>{invoice.number}</Link>
                     <span>
-                      {invoice.customerCompany || invoice.customerName} · jatuh tempo{" "}
+                      {invoice.customerCompany || invoice.customerName} · target selesai{" "}
                       {formatDate(invoice.dueDate)}
                     </span>
                   </div>
                   <div className="admin-activity-meta">
-                    <strong>{formatCurrency(totals.total)}</strong>
+                    <strong>{formatCurrency(totals.total - invoice.paidAmount)}</strong>
                     <StatusBadge label={meta.label} tone={meta.tone} />
                   </div>
                 </li>

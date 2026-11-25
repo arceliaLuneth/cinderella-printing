@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
-import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
+import { Pencil, Plus, Tags, EyeOff } from "lucide-react";
 import type { Category, CategoryStatus } from "@/types/admin";
 import { useAdminData } from "@/components/admin/data-provider";
 import { useToast } from "@/components/admin/toast";
@@ -18,12 +18,13 @@ import { categoryStatusMeta, categoryStatusOptions, formatDate } from "@/lib/adm
 type ModalState = { mode: "create" } | { mode: "edit"; category: Category } | null;
 
 export default function AdminCategoriesPage() {
-  const { categories, products, deleteCategory } = useAdminData();
+  const { categories, products, deactivateCategory } = useAdminData();
   const { notify } = useToast();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | CategoryStatus>("all");
   const [modal, setModal] = useState<ModalState>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
+  const [deactivating, setDeactivating] = useState(false);
+  const [deactivateTarget, setDeactivateTarget] = useState<Category | null>(null);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("id-ID");
@@ -40,16 +41,18 @@ export default function AdminCategoriesPage() {
     return products.filter((product) => product.categoryId === categoryId).length;
   }
 
-  function handleDelete() {
-    if (!deleteTarget) return;
-    const result = deleteCategory(deleteTarget.id);
-    if (!result.ok) {
-      notify(result.message, "danger");
-      setDeleteTarget(null);
-      return;
+  async function handleDeactivate() {
+    if (!deactivateTarget || deactivating) return;
+    setDeactivating(true);
+    try {
+      await deactivateCategory(deactivateTarget.id);
+      notify(`Kategori “${deactivateTarget.name}” dinonaktifkan.`, "info");
+      setDeactivateTarget(null);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Kategori belum dapat dinonaktifkan.", "danger");
+    } finally {
+      setDeactivating(false);
     }
-    notify(`Kategori “${deleteTarget.name}” dihapus.`, "info");
-    setDeleteTarget(null);
   }
 
   return (
@@ -145,10 +148,11 @@ export default function AdminCategoriesPage() {
                     <button
                       type="button"
                       className="admin-btn admin-btn--ghost admin-btn--sm admin-btn--danger-text"
-                      onClick={() => setDeleteTarget(category)}
+                      onClick={() => setDeactivateTarget(category)}
+                      disabled={category.status === "nonaktif"}
                     >
-                      <Trash2 size={14} aria-hidden="true" />
-                      Hapus
+                      <EyeOff size={14} aria-hidden="true" />
+                      Nonaktifkan
                     </button>
                   </div>
                 </article>
@@ -179,18 +183,14 @@ export default function AdminCategoriesPage() {
           onClose={() => setModal(null)}
         />
       )}
-      {deleteTarget && (
+      {deactivateTarget && (
         <ConfirmDialog
-          title="Hapus kategori?"
-          message={
-            productCount(deleteTarget.id) > 0
-              ? `Kategori “${deleteTarget.name}” masih dipakai oleh ${productCount(
-                  deleteTarget.id
-                )} produk. Pindahkan produk ke kategori lain sebelum menghapus.`
-              : `Kategori “${deleteTarget.name}” akan dihapus dari katalog.`
-          }
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
+          title="Nonaktifkan kategori?"
+          message={`Kategori “${deactivateTarget.name}” akan disembunyikan dari katalog, termasuk produknya. Anda bisa mengaktifkannya kembali lewat Edit.`}
+          confirmLabel="Nonaktifkan"
+          pending={deactivating}
+          onConfirm={handleDeactivate}
+          onCancel={() => setDeactivateTarget(null)}
         />
       )}
     </>

@@ -7,21 +7,24 @@ import { useAdminAuth } from "@/components/admin/auth-provider";
 
 export default function AdminLoginPage() {
   const { login } = useAdminAuth();
+  const [identifier, setIdentifier] = useState("");
+  const [pending, setPending] = useState(false);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!password.trim()) {
-      setError("Masukkan kata sandi admin terlebih dahulu.");
-      return;
-    }
-    if (!login(password)) {
-      setError("Kata sandi tidak sesuai. Periksa kembali lalu coba lagi.");
-      return;
-    }
+    if (pending) return;
+    setPending(true);
     setError("");
+    try {
+      await login(identifier.trim(), password);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Login belum berhasil.");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -61,10 +64,15 @@ export default function AdminLoginPage() {
             </span>
             <div>
               <h2>Masuk ke dashboard</h2>
-              <p>Masukkan kata sandi admin untuk melanjutkan.</p>
+              <p>Gunakan nama pengguna atau email akun admin.</p>
             </div>
           </div>
 
+          <label className="admin-field" htmlFor="admin-identifier">
+            <span>Nama pengguna atau email</span>
+            <input id="admin-identifier" value={identifier} onChange={(event) => setIdentifier(event.target.value)}
+              autoComplete="username" autoCapitalize="none" spellCheck={false} maxLength={254} autoFocus required />
+          </label>
           <label className="admin-field" htmlFor="admin-password">
             <span>Kata sandi</span>
             <div className="admin-password-input">
@@ -73,7 +81,7 @@ export default function AdminLoginPage() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 autoComplete="current-password"
-                autoFocus
+                required
                 onChange={(event) => {
                   setPassword(event.target.value);
                   if (error) setError("");
@@ -98,9 +106,9 @@ export default function AdminLoginPage() {
             </p>
           )}
 
-          <button type="submit" className="admin-btn admin-btn--primary admin-btn--full">
+          <button type="submit" className="admin-btn admin-btn--primary admin-btn--full" disabled={pending}>
             <LogIn size={17} aria-hidden="true" />
-            Masuk
+            {pending ? "Sedang masuk…" : "Masuk"}
           </button>
         </form>
         <p className="admin-login-copyright">

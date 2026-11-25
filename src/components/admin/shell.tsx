@@ -1,20 +1,23 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   FileText,
+  ImageIcon,
   LayoutDashboard,
   LogOut,
   Menu,
   Package,
   ShoppingCart,
   Tags,
+  Users,
   X,
 } from "lucide-react";
 import { useAdminAuth } from "@/components/admin/auth-provider";
+import { useToast } from "@/components/admin/toast";
 
 const navSections = [
   {
@@ -26,11 +29,13 @@ const navSections = [
     items: [
       { href: "/admin/produk", label: "Produk", icon: Package },
       { href: "/admin/kategori", label: "Kategori", icon: Tags },
+      { href: "/admin/inspirasi", label: "Inspirasi Produk", icon: ImageIcon },
     ],
   },
   {
     label: "Transaksi",
     items: [
+      { href: "/admin/pelanggan", label: "Pelanggan", icon: Users },
       { href: "/admin/pesanan", label: "Pesanan", icon: ShoppingCart },
       { href: "/admin/invoice", label: "Invoice", icon: FileText },
     ],
@@ -41,10 +46,11 @@ function pageTitle(pathname: string) {
   if (pathname === "/admin") return "Dashboard";
   if (pathname.startsWith("/admin/produk")) return "Produk";
   if (pathname.startsWith("/admin/kategori")) return "Kategori";
+  if (pathname.startsWith("/admin/inspirasi")) return "Inspirasi Produk";
   if (pathname.startsWith("/admin/pesanan/")) return "Detail pesanan";
   if (pathname.startsWith("/admin/pesanan")) return "Pesanan";
   if (pathname === "/admin/invoice/baru") return "Buat invoice";
-  if (/^\/admin\/invoice\/[^/]+\/edit$/.test(pathname)) return "Edit invoice";
+  if (pathname.startsWith("/admin/pelanggan")) return "Pelanggan";
   if (/^\/admin\/invoice\/[^/]+$/.test(pathname)) return "Detail invoice";
   if (pathname.startsWith("/admin/invoice")) return "Invoice";
   return "Admin";
@@ -59,7 +65,28 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAdminAuth();
+  const { notify } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const opener = menuButton.current;
+    closeButton.current?.focus();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const desktop = window.matchMedia("(min-width: 961px)");
+    function onResize() { if (desktop.matches) setMenuOpen(false); }
+    function onKey(event: KeyboardEvent) { if (event.key === "Escape") setMenuOpen(false); }
+    desktop.addEventListener("change", onResize);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      desktop.removeEventListener("change", onResize);
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+      opener?.focus();
+    };
+  }, [menuOpen]);
 
   const dateLabel = new Intl.DateTimeFormat("id-ID", {
     weekday: "long",
@@ -68,9 +95,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     year: "numeric",
   }).format(new Date());
 
-  function handleLogout() {
-    logout();
-    router.replace("/admin/login");
+  async function handleLogout() {
+    try {
+      await logout();
+      router.replace("/admin/login");
+    } catch {
+      notify("Belum berhasil keluar. Coba lagi.", "danger");
+    }
   }
 
   return (
@@ -81,7 +112,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         aria-label="Tutup navigasi"
         onClick={() => setMenuOpen(false)}
       />
-      <aside className="admin-sidebar" aria-label="Navigasi admin">
+      <aside id="admin-sidebar" className="admin-sidebar" aria-label="Navigasi admin">
         <div className="admin-brand">
           <Image
             src="/admin-logo.png"
@@ -98,6 +129,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             className="admin-sidebar-close"
+            ref={closeButton}
             onClick={() => setMenuOpen(false)}
             aria-label="Tutup navigasi"
           >
@@ -130,6 +162,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="admin-sidebar-footer">
+          <Link href="/" className="admin-sidebar-action admin-mobile-site-link" target="_blank" rel="noopener">
+            Lihat situs
+          </Link>
           <button type="button" className="admin-sidebar-action" onClick={handleLogout}>
             <LogOut size={16} aria-hidden="true" />
             Keluar
@@ -137,14 +172,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="admin-body">
+      <div className="admin-body" inert={menuOpen}>
         <header className="admin-topbar">
           <div className="admin-topbar-left">
             <button
               type="button"
               className="admin-menu-btn"
+              ref={menuButton}
               onClick={() => setMenuOpen(true)}
               aria-label="Buka navigasi"
+              aria-expanded={menuOpen}
+              aria-controls="admin-sidebar"
             >
               <Menu size={20} aria-hidden="true" />
             </button>

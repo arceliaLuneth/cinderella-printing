@@ -1,5 +1,6 @@
 import { CtaBand, PageIntro, WhatsAppLink } from "@/components/site";
-import { ConsultationForm } from "@/components/interactions";
+import { Suspense } from "react";
+import { CatalogContent } from "@/components/catalog";
 
 export default function ConsultationPage() {
   return (
@@ -16,7 +17,7 @@ export default function ConsultationPage() {
             Formulir ini hanya menyusun ringkasan kebutuhan untuk diteruskan melalui
             WhatsApp. Formulir bukan pemesanan langsung dan belum mengirim data ke server.
           </p>
-          <ConsultationForm />
+          <Suspense fallback={<p role="status">Menyiapkan formulir konsultasi…</p>}><CatalogContent view="consultation" /></Suspense>
         </div>
         <aside className="summary-aside">
           <h2>Belum siap mengisi formulir?</h2>

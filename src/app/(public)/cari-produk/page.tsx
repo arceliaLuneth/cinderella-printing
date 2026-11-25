@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CtaBand, PageIntro } from "@/components/site";
-import { CategoryGrid } from "@/components/interactions";
+import { Suspense } from "react";
+import { CatalogContent } from "@/components/catalog";
 
 export default function DiscoveryPage() {
   return (
@@ -14,7 +15,7 @@ export default function DiscoveryPage() {
       <section className="section container">
         <h2>Pilih kategori awal</h2>
         <p className="section-desc">Pilihan ini membantu mengarahkan konsultasi, bukan membatasi bentuk produk yang dapat ditanyakan.</p>
-        <CategoryGrid />
+        <Suspense fallback={<p role="status">Memuat kategori…</p>}><CatalogContent view="categories" /></Suspense>
         <div className="notice notice-row">
           <div><h2>Belum yakin kategori mana yang tepat?</h2><p>Ceritakan fungsi produk atau barang yang akan dikemas. Detail dapat dibahas kemudian.</p></div>
           <Link href="/konsultasi" className="button button-dark">Siapkan Konsultasi →</Link>

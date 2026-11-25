@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CtaBand, WhatsAppLink } from "@/components/site";
-import { CategoryGrid, ProductGrid } from "@/components/interactions";
+import { Suspense } from "react";
+import { CatalogContent } from "@/components/catalog";
 
 const steps = [
   ["01", "Konsultasi kebutuhan", "Sampaikan jenis produk, fungsi kemasan, dan perkiraan jumlah yang dibutuhkan."],
@@ -13,7 +14,7 @@ const steps = [
 export default function HomePage() {
   return (
     <>
-      <section className="container hero">
+      <section className="container hero catalog-hero">
         <div className="hero-copy">
           <p className="eyebrow">CINDERELLA PRINTING · CETAK &amp; KEMASAN</p>
           <h1>Temukan kemasan yang sesuai dengan kebutuhan produk Anda.</h1>
@@ -27,9 +28,6 @@ export default function HomePage() {
             <WhatsAppLink label="Tanya via WhatsApp" />
           </div>
           <p className="helper">Belum tahu ukuran atau bahan? Tidak masalah. Mulai dari jenis produk atau kebutuhan Anda.</p>
-        </div>
-        <div className="hero-visual" role="img" aria-label="Area foto contoh produk dan kemasan Cinderella Printing">
-          <span>Foto produk dan kemasan akan ditambahkan</span>
         </div>
       </section>
 
@@ -50,28 +48,10 @@ export default function HomePage() {
       </section>
 
       <section className="section container">
-        <div className="section-heading">
-          <div>
-            <h2>Jelajahi kategori produk</h2>
-            <p>Pilih kategori untuk melihat referensi awal. Ketersediaan dan detail produk dikonfirmasi saat konsultasi.</p>
-          </div>
-          <Link href="/produk" className="button button-outline">Semua Kategori →</Link>
-        </div>
-        <CategoryGrid />
-        <div className="center-action"><Link href="/cari-produk" className="text-link">Belum yakin memilih kategori? Bantu saya memilih →</Link></div>
-      </section>
-
-      <section className="section-soft">
-        <div className="container">
-          <div className="section-heading">
-            <div>
-              <h2>Inspirasi produk</h2>
-              <p>Gunakan referensi kategori untuk menjelaskan bentuk dan kebutuhan produk yang Anda inginkan.</p>
-            </div>
-            <Link href="/portofolio" className="button button-outline">Lihat Inspirasi →</Link>
-          </div>
-          <ProductGrid limit={3} />
-        </div>
+        <Suspense fallback={<p role="status">Memuat katalog…</p>}>
+          <CatalogContent view="home" />
+        </Suspense>
+        <div className="center-action"><Link href="/produk" className="text-link">Lihat semua produk →</Link></div>
       </section>
 
       <section className="section container">
